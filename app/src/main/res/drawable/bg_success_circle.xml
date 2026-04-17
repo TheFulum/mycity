@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Кружок вокруг галочки на экране успеха -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#1527AE60"/>
+    <stroke android:width="2dp" android:color="#3327AE60"/>
+</shape>

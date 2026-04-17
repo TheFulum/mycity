@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">Мой город</string>
+    <string name="app_title">Мой город — моя ответственность</string>
+
+    <!-- Статусы -->
+    <string name="status_active">Активен</string>
+    <string name="status_resolved">Выполнено</string>
+
+    <!-- Фильтры -->
+    <string name="filter_date">Дата</string>
+    <string name="filter_comments">Комментарии</string>
+    <string name="filter_status">Статус</string>
+    <string name="filter_all">Все</string>
+    <string name="filter_active">Активные</string>
+    <string name="filter_resolved">Выполненные</string>
+
+    <!-- Создание заявки -->
+    <string name="create_title">Новая заявка</string>
+    <string name="create_hint_title">Заголовок</string>
+    <string name="create_hint_description">Описание проблемы</string>
+    <string name="create_hint_name">Ваше имя</string>
+    <string name="create_hint_contact">Телефон или email</string>
+    <string name="create_add_photo">Добавить фото</string>
+    <string name="create_pick_location">Указать на карте</string>
+    <string name="create_submit">Опубликовать заявку</string>
+
+    <!-- Детальный экран -->
+    <string name="detail_report_title">Отчёт о выполнении</string>
+    <string name="detail_comments">Комментарии</string>
+    <string name="detail_leave_rating">Оставить оценку</string>
+    <string name="detail_send">Отправить</string>
+    <string name="detail_edit">Изменить</string>
+    <string name="detail_delete">Удалить</string>
+    <string name="detail_no_comments">Пока нет комментариев</string>
+    <string name="detail_rate_hint">Ваш отзыв</string>
+
+    <!-- Профиль -->
+    <string name="profile_edit">Редактировать</string>
+    <string name="profile_sign_out">Выйти из аккаунта</string>
+    <string name="profile_my_active">Активные</string>
+    <string name="profile_my_resolved">Выполненные</string>
+    <string name="profile_guest_hint">Чтобы пользоваться личным кабинетом, войдите в аккаунт</string>
+    <string name="profile_sign_in">Войти</string>
+
+    <!-- Общее -->
+    <string name="loading">Загрузка…</string>
+    <string name="empty_feed">Заявок пока нет</string>
+    <string name="error_load">Не удалось загрузить данные</string>
+    <string name="error_no_location">Не удалось определить координаты</string>
+    <string name="error_no_photo">Добавьте хотя бы одно фото</string>
+    <string name="error_required">Обязательное поле</string>
+</resources>

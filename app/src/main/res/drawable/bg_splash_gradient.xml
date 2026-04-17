@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ╔══════════════════════════════════════════════════════╗
+    ║  Фон «Orbital Pulse»  —  Deep Space Multi-Layer     ║
+    ╠══════════════════════════════════════════════════════╣
+    ║  Слой 1 : linear  #0F172A → #020617  (base canvas)  ║
+    ║  Слой 2 : radial  #1E293B ~40%  (soft-slate, LT)    ║
+    ║  Слой 3 : radial  #3D5AFE ~15%  (blue glow,  RB)    ║
+    ║  Слой 4 : radial  #1A237E ~8%   (indigo depth, C)   ║
+    ╚══════════════════════════════════════════════════════╝
+    Примечание: Android XML gradient не поддерживает
+    filter:blur, поэтому объём достигается широкими
+    радиальными пятнами с низкой alpha.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ① Базовый вертикальный градиент: Deep Slate → Obsidian Black -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#0F172A"
+                android:endColor="#020617" />
+        </shape>
+    </item>
+
+    <!-- ② Soft Slate туманность — верхний левый угол (opacity ≈ 40%) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="95%p"
+                android:centerX="0.0"
+                android:centerY="0.0"
+                android:startColor="#661E293B"
+                android:endColor="#000F172A" />
+        </shape>
+    </item>
+
+    <!-- ③ Primary Blue Glow — нижний правый угол (opacity ≈ 15%) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="72%p"
+                android:centerX="1.0"
+                android:centerY="1.0"
+                android:startColor="#263D5AFE"
+                android:endColor="#00020617" />
+        </shape>
+    </item>
+
+    <!-- ④ Indigo depth — центр-низ, добавляет атмосферу (opacity ≈ 8%) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="60%p"
+                android:centerX="0.5"
+                android:centerY="0.65"
+                android:startColor="#141A237E"
+                android:endColor="#00020617" />
+        </shape>
+    </item>
+
+</layer-list>

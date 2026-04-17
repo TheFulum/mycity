@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Фоны -->
+    <color name="bg_primary">#1A1A1E</color>
+    <color name="bg_secondary">#242428</color>
+    <color name="bg_card">#2C2C30</color>
+    <color name="bg_circle">#2E2E32</color>
+    <color name="bg_chip">#3A3A3E</color>
+
+    <!-- Акценты кружочков -->
+    <color name="circle_login">#5B5FBE</color>
+    <color name="circle_register">#C0392B</color>
+    <color name="circle_guest">#27AE60</color>
+    <color name="circle_exit">#A93226</color>
+
+    <!-- Текст -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#9E9E9E</color>
+    <color name="text_hint">#5C5C5C</color>
+
+    <!-- UI элементы -->
+    <color name="accent_blue">#5B5FBE</color>
+    <color name="accent_green">#27AE60</color>
+    <color name="accent_red">#C0392B</color>
+    <color name="accent_yellow">#F1C40F</color>
+    <color name="divider">#333337</color>
+    <color name="input_bg">#2A2A2E</color>
+    <color name="input_stroke">#444448</color>
+
+    <!-- Статусы -->
+    <color name="status_active">#27AE60</color>
+    <color name="status_resolved">#7F8C8D</color>
+
+    <color name="ripple_light">#33FFFFFF</color>
+    <color name="shimmer_base">#2A2A2E</color>
+    <color name="shimmer_highlight">#3A3A3E</color>
+</resources>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ╔═══════════════════════════════════════════════════╗
+    ║  Кружок «ВХОД»  —  Blue Orbital Glass            ║
+    ╠═══════════════════════════════════════════════════╣
+    ║  Fill  : radial #3D5AFE  center 40% → edge 10%   ║
+    ║  Border: rgba(255,255,255, 0.10) — 1px           ║
+    ║  Glow  : эмуляция через внешний слой с blur       ║
+    ║                                                   ║
+    ║  Alpha-коды:                                      ║
+    ║    40% = 66  |  10% = 1A                         ║
+    ╚═══════════════════════════════════════════════════╝
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Внешнее свечение (glow): широкий полупрозрачный круг, ~30% -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#4D3D5AFE"
+                android:endColor="#003D5AFE" />
+        </shape>
+    </item>
+
+    <!-- Основной fill: радиальный градиент center 40% → edge 10% -->
+    <item
+        android:bottom="8dp"
+        android:left="8dp"
+        android:right="8dp"
+        android:top="8dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="50%p"
+                android:centerX="0.5"
+                android:centerY="0.5"
+                android:startColor="#663D5AFE"
+                android:endColor="#1A3D5AFE" />
+            <!-- Border: rgba(255,255,255, 0.10) -->
+            <stroke
+                android:width="1dp"
+                android:color="#1AFFFFFF" />
+        </shape>
+    </item>
+
+    <!-- Внутренний блик сверху: имитация inset highlight -->
+    <item
+        android:bottom="52dp"
+        android:left="20dp"
+        android:right="20dp"
+        android:top="12dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#33FFFFFF"
+                android:endColor="#00FFFFFF" />
+        </shape>
+    </item>
+
+</layer-list>
