@@ -1,31 +1,45 @@
 package com.app.mycity.ui.main;
 
 import android.animation.AnimatorSet;
+import android.content.Intent;
 import android.animation.ObjectAnimator;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.app.mycity.R;
+import com.app.mycity.data.model.UserProfile;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.ActivityMainBinding;
+import com.app.mycity.data.repository.NotificationRepository;
+import com.app.mycity.ui.admin.AdminModerationFragment;
+import com.app.mycity.ui.admin.AdminStatsFragment;
+import com.app.mycity.ui.admin.AdminUsersFragment;
 import com.app.mycity.ui.archive.ArchiveFragment;
 import com.app.mycity.ui.create.CreateIssueFragment;
 import com.app.mycity.ui.feed.FeedFragment;
+import com.app.mycity.ui.feed.EditIssueFragment;
 import com.app.mycity.ui.feed.IssueDetailFragment;
 import com.app.mycity.ui.map.MapFragment;
 import com.app.mycity.ui.profile.ProfileFragment;
+import com.app.mycity.ui.profile.UserProfileViewFragment;
 import com.app.mycity.util.SessionManager;
 import com.bumptech.glide.Glide;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +51,9 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private boolean fabExpanded = false;
     private SessionManager session;
+    private boolean isAdmin;
+    private ListenerRegistration roleListener;
+    private ListenerRegistration bellListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +71,28 @@ public class MainActivity extends AppCompatActivity {
         setupPager();
         setupToolbar();
         setupFabMenu();
-        loadAvatar();
+        watchRole();
+        watchBell();
 
         getSupportFragmentManager().addOnBackStackChangedListener(this::syncHostVisibility);
+    }
+
+    private void watchRole() {
+        FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
+        if (u == null) { isAdmin = false; return; }
+        roleListener = new UserRepository().listen(u.getUid(), (profile, err) -> {
+            boolean prev = isAdmin;
+            isAdmin = profile != null && profile.isAdmin();
+            if (profile != null && profile.getAvatarUrl() != null && !profile.getAvatarUrl().isEmpty()) {
+                Glide.with(this).load(profile.getAvatarUrl())
+                        .placeholder(R.drawable.ic_avatar_placeholder)
+                        .into(binding.ivAvatar);
+            }
+            if (isAdmin != prev && fabExpanded) {
+                collapseFab();
+                expandFab();
+            }
+        });
     }
 
     private void setupPager() {
@@ -72,6 +108,30 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupToolbar() {
         binding.ivAvatar.setOnClickListener(v -> openHostFragment(new ProfileFragment(), "profile"));
+        binding.btnBell.setOnClickListener(v -> openHostFragment(new NotificationsFragment(), "notifications"));
+
+        if (session.isGuest()) {
+            binding.btnGuestExit.setVisibility(View.VISIBLE);
+            binding.btnGuestExit.setOnClickListener(v -> {
+                session.clear();
+                Intent i = new Intent(this, com.app.mycity.ui.auth.SplashActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
+            });
+        }
+    }
+
+    private void watchBell() {
+        FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
+        if (u == null || session.isGuest()) return;
+        bellListener = new NotificationRepository().listenUnreadCount(u.getUid(), count -> {
+            if (count > 0) {
+                binding.tvBellBadge.setVisibility(View.VISIBLE);
+                binding.tvBellBadge.setText(count > 9 ? "9+" : String.valueOf(count));
+            } else {
+                binding.tvBellBadge.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void setupFabMenu() {
@@ -80,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         });
         binding.fabHome.setOnClickListener(v -> {
             collapseFab();
-            popHost();
+            popHostToRoot();
             binding.viewPager.setCurrentItem(0, true);
         });
         binding.fabAdd.setOnClickListener(v -> {
@@ -90,6 +150,18 @@ public class MainActivity extends AppCompatActivity {
         binding.fabArchive.setOnClickListener(v -> {
             collapseFab();
             openHostFragment(new ArchiveFragment(), "archive");
+        });
+        binding.fabAdminModerate.setOnClickListener(v -> {
+            collapseFab();
+            openHostFragment(new AdminModerationFragment(), "admin_moderate");
+        });
+        binding.fabAdminUsers.setOnClickListener(v -> {
+            collapseFab();
+            openHostFragment(new AdminUsersFragment(), "admin_users");
+        });
+        binding.fabAdminStats.setOnClickListener(v -> {
+            collapseFab();
+            openHostFragment(new AdminStatsFragment(), "admin_stats");
         });
 
         binding.getRoot().setOnTouchListener((v, ev) -> {
@@ -102,15 +174,62 @@ public class MainActivity extends AppCompatActivity {
 
     private void expandFab() {
         fabExpanded = true;
+        refreshActiveFab();
         animateMiniFab(binding.fabHome, true, 0);
         animateMiniFab(binding.fabAdd, true, 50);
         animateMiniFab(binding.fabArchive, true, 100);
+        if (isAdmin) {
+            binding.fabAdminDivider.setVisibility(View.VISIBLE);
+            binding.fabAdminDivider.setAlpha(0f);
+            binding.fabAdminDivider.animate().alpha(1f).setStartDelay(140).setDuration(200).start();
+            animateMiniFab(binding.fabAdminModerate, true, 150);
+            animateMiniFab(binding.fabAdminUsers, true, 200);
+            animateMiniFab(binding.fabAdminStats, true, 250);
+        }
         binding.fabTrigger.animate().rotation(180).setDuration(250).start();
+    }
+
+    private void refreshActiveFab() {
+        Fragment host = getSupportFragmentManager().findFragmentById(R.id.fragment_host);
+        FloatingActionButton active;
+        if (host instanceof CreateIssueFragment) {
+            active = binding.fabAdd;
+        } else if (host instanceof ArchiveFragment) {
+            active = binding.fabArchive;
+        } else if (host instanceof AdminModerationFragment) {
+            active = binding.fabAdminModerate;
+        } else if (host instanceof AdminUsersFragment) {
+            active = binding.fabAdminUsers;
+        } else if (host instanceof AdminStatsFragment) {
+            active = binding.fabAdminStats;
+        } else if (host == null) {
+            active = binding.fabHome;
+        } else {
+            active = null;
+        }
+        applyFabTint(binding.fabHome, active == binding.fabHome, R.color.accent_blue);
+        applyFabTint(binding.fabAdd, active == binding.fabAdd, R.color.accent_blue);
+        applyFabTint(binding.fabArchive, active == binding.fabArchive, R.color.accent_blue);
+        applyFabTint(binding.fabAdminModerate, active == binding.fabAdminModerate, R.color.accent_red);
+        applyFabTint(binding.fabAdminUsers, active == binding.fabAdminUsers, R.color.accent_red);
+        applyFabTint(binding.fabAdminStats, active == binding.fabAdminStats, R.color.accent_red);
+    }
+
+    private void applyFabTint(FloatingActionButton fab, boolean active, @ColorRes int activeColor) {
+        @ColorRes int colorRes = active ? activeColor : R.color.bg_secondary;
+        fab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, colorRes)));
     }
 
     private void collapseFab() {
         if (!fabExpanded) return;
         fabExpanded = false;
+        if (binding.fabAdminDivider.getVisibility() == View.VISIBLE) {
+            binding.fabAdminDivider.animate().alpha(0f).setDuration(150)
+                    .withEndAction(() -> binding.fabAdminDivider.setVisibility(View.INVISIBLE)).start();
+            animateMiniFab(binding.fabAdminStats, false, 0);
+            animateMiniFab(binding.fabAdminUsers, false, 40);
+            animateMiniFab(binding.fabAdminModerate, false, 80);
+        }
         animateMiniFab(binding.fabArchive, false, 0);
         animateMiniFab(binding.fabAdd, false, 50);
         animateMiniFab(binding.fabHome, false, 100);
@@ -133,19 +252,6 @@ public class MainActivity extends AppCompatActivity {
         if (!show) view.postDelayed(() -> view.setVisibility(View.INVISIBLE), 250 + delay);
     }
 
-    private void loadAvatar() {
-        FirebaseUser u = FirebaseAuth.getInstance().getCurrentUser();
-        if (u == null) return;
-        new UserRepository().get(u.getUid()).addOnSuccessListener(snap -> {
-            if (snap == null || !snap.exists()) return;
-            String url = snap.getString("avatarUrl");
-            if (url != null && !url.isEmpty()) {
-                Glide.with(this).load(url).placeholder(R.drawable.ic_avatar_placeholder)
-                        .into(binding.ivAvatar);
-            }
-        });
-    }
-
     public void openHostFragment(Fragment fragment, String tag) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_host, fragment, HOST_TAG)
@@ -159,14 +265,38 @@ public class MainActivity extends AppCompatActivity {
         openHostFragment(IssueDetailFragment.newInstance(issueId), "detail_" + issueId);
     }
 
+    public void openUserProfile(String uid) {
+        openHostFragment(UserProfileViewFragment.newInstance(uid), "user_" + uid);
+    }
+
+    public void openEditIssue(String issueId) {
+        openHostFragment(EditIssueFragment.newInstance(issueId), "edit_" + issueId);
+    }
+
+    public void openMapFullscreen(double lat, double lng, String title) {
+        openHostFragment(com.app.mycity.ui.map.MapFullscreenFragment.newInstance(lat, lng, title), "map_full");
+    }
+
     public void popHost() {
         getSupportFragmentManager().popBackStack();
+    }
+
+    public void popHostToRoot() {
+        getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     private void syncHostVisibility() {
         boolean hasHost = getSupportFragmentManager().getBackStackEntryCount() > 0;
         binding.fragmentHost.setVisibility(hasHost ? View.VISIBLE : View.GONE);
         binding.viewPager.setVisibility(hasHost ? View.GONE : View.VISIBLE);
+        refreshActiveFab();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (roleListener != null) { roleListener.remove(); roleListener = null; }
+        if (bellListener != null) { bellListener.remove(); bellListener = null; }
+        super.onDestroy();
     }
 
     @Override

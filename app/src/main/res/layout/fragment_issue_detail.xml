@@ -62,6 +62,15 @@
                     android:gravity="end"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp" />
+
+                <ImageButton
+                    android:id="@+id/btn_more"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_more_vert"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <TextView
@@ -72,6 +81,18 @@
                 android:textColor="@color/text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_author_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/accent_blue"
+                android:textSize="13sp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -103,6 +124,33 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <!-- Карта -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_card"
+            android:clipToOutline="true">
+
+            <org.osmdroid.views.MapView
+                android:id="@+id/map_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+
+        <!-- Кнопка закрытия для админа -->
+        <Button
+            android:id="@+id/btn_admin_resolve"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="@color/accent_red"
+            android:text="Закрыть заявку"
+            android:textColor="@color/text_primary"
+            android:visibility="gone" />
+
         <!-- Блок отчёта -->
         <LinearLayout
             android:id="@+id/report_block"
@@ -124,12 +172,15 @@
 
             <TextView
                 android:id="@+id/tv_resolved_by"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/accent_blue"
                 android:textSize="13sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
 
             <TextView
                 android:id="@+id/tv_resolve_report"

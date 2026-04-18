@@ -39,7 +39,13 @@ public class ArchiveFragment extends Fragment {
                 ((MainActivity) getActivity()).openIssueDetail(issue.getId());
             }
         });
+        adapter.setOnAuthorClick(uid -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openUserProfile(uid);
+            }
+        });
         b.rvIssues.setLayoutManager(new LinearLayoutManager(requireContext()));
+        b.rvIssues.setItemAnimator(null);
         b.rvIssues.setAdapter(adapter);
 
         b.swipeRefresh.setOnRefreshListener(this::subscribe);

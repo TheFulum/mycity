@@ -13,6 +13,7 @@ public class Comment {
 
     private String authorId;
     private String authorName;
+    private String authorRole;
     private int rating;
     private String text;
     private Date createdAt;
@@ -34,6 +35,9 @@ public class Comment {
 
     public String getAuthorName() { return authorName; }
     public void setAuthorName(String authorName) { this.authorName = authorName; }
+
+    public String getAuthorRole() { return authorRole; }
+    public void setAuthorRole(String authorRole) { this.authorRole = authorRole; }
 
     public int getRating() { return rating; }
     public void setRating(int rating) { this.rating = rating; }

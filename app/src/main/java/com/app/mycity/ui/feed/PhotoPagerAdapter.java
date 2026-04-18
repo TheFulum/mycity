@@ -16,7 +16,14 @@ import java.util.List;
 
 public class PhotoPagerAdapter extends RecyclerView.Adapter<PhotoPagerAdapter.VH> {
 
+    public interface OnPhotoClick { void onClick(int index); }
+
     private final List<String> urls = new ArrayList<>();
+    private OnPhotoClick onPhotoClick;
+
+    public void setOnPhotoClick(OnPhotoClick cb) { this.onPhotoClick = cb; }
+
+    public List<String> getUrls() { return new ArrayList<>(urls); }
 
     public void submit(List<String> list) {
         urls.clear();
@@ -38,6 +45,12 @@ public class PhotoPagerAdapter extends RecyclerView.Adapter<PhotoPagerAdapter.VH
                 .placeholder(R.drawable.bg_image_placeholder)
                 .centerCrop()
                 .into(holder.iv);
+        if (onPhotoClick != null) {
+            final int pos = position;
+            holder.iv.setOnClickListener(v -> onPhotoClick.onClick(pos));
+        } else {
+            holder.iv.setOnClickListener(null);
+        }
     }
 
     @Override public int getItemCount() { return urls.size(); }

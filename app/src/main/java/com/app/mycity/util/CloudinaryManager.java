@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class CloudinaryManager {
 
-    private static final String CLOUD_NAME  = "YOUR_CLOUD_NAME";
-    private static final String UPLOAD_PRESET = "YOUR_UPLOAD_PRESET"; // (unsigned)
+    private static final String CLOUD_NAME  = "dsfmj1rgd";
+    private static final String UPLOAD_PRESET = "mycity";
 
     private static boolean initialized = false;
 
@@ -38,7 +38,7 @@ public class CloudinaryManager {
     public static void upload(Uri uri, String folder, UploadResultCallback callback) {
         MediaManager.get()
                 .upload(uri)
-                .option("upload_preset", UPLOAD_PRESET)
+                .unsigned(UPLOAD_PRESET)
                 .option("folder", folder)
                 .callback(new UploadCallback() {
                     @Override

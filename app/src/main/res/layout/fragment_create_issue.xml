@@ -145,18 +145,42 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Нажмите, чтобы определить…"
+                android:text="Нажмите на карту, чтобы указать точку…"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/btn_pick_location"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="GPS"
-                android:textColor="@color/accent_blue" />
         </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="8dp">
+
+            <org.osmdroid.views.MapView
+                android:id="@+id/map_picker"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/bg_card" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btn_my_location"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="10dp"
+                android:src="@drawable/ic_location"
+                app:backgroundTint="@color/accent_blue"
+                app:fabCustomSize="40dp"
+                app:maxImageSize="20dp"
+                app:tint="@color/text_primary" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/btn_pick_location"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Моё местоположение"
+            android:textColor="@color/accent_blue" />
 
         <!-- Контакты гостя -->
         <LinearLayout

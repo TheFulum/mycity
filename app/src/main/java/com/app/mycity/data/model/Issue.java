@@ -30,6 +30,7 @@ public class Issue {
     private Date createdAt;
     private Date resolvedAt;
     private String resolvedBy;
+    private String resolvedByName;
     private String resolveReport;
     private List<String> reportPhotoUrls = new ArrayList<>();
     private int commentCount;
@@ -77,6 +78,9 @@ public class Issue {
 
     public String getResolvedBy() { return resolvedBy; }
     public void setResolvedBy(String resolvedBy) { this.resolvedBy = resolvedBy; }
+
+    public String getResolvedByName() { return resolvedByName; }
+    public void setResolvedByName(String resolvedByName) { this.resolvedByName = resolvedByName; }
 
     public String getResolveReport() { return resolveReport; }
     public void setResolveReport(String resolveReport) { this.resolveReport = resolveReport; }

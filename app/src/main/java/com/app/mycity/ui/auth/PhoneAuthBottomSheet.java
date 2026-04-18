@@ -19,6 +19,7 @@ import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.app.mycity.databinding.BottomSheetPhoneAuthBinding;
+import com.app.mycity.util.FirebaseErrors;
 
 import java.util.concurrent.TimeUnit;
 
@@ -107,9 +108,7 @@ public class PhoneAuthBottomSheet extends BottomSheetDialogFragment {
                         Log.e("PhoneAuth", "ERROR: " + e.getClass().getSimpleName() + " | " + e.getMessage(), e);
                         if (binding == null) return;
                         binding.layoutWaiting.setVisibility(View.GONE);
-                        Toast.makeText(requireContext(),
-                                "Ошибка: " + e.getMessage(),
-                                Toast.LENGTH_LONG).show();
+                        Toast.makeText(requireContext(), FirebaseErrors.humanize(e), Toast.LENGTH_LONG).show();
                     }
 
                     @Override

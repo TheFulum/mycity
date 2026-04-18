@@ -12,6 +12,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.app.mycity.databinding.ActivityRegisterBinding;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.util.FirebaseErrors;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -73,7 +74,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(r -> { setLoading(false); showPostRegisterDialog(); })
-                .addOnFailureListener(e -> { setLoading(false); showError(e.getMessage()); });
+                .addOnFailureListener(e -> { setLoading(false); showError(FirebaseErrors.humanize(e)); });
     }
 
     private void startPhoneRegister() {
@@ -126,12 +127,7 @@ public class RegisterActivity extends AppCompatActivity {
         return ok;
     }
 
-    private void showError(String message) {
-        String msg = "Ошибка регистрации";
-        if (message != null) {
-            if (message.contains("email already")) msg = "Этот email уже используется";
-            else if (message.contains("network")) msg = "Нет подключения к интернету";
-        }
+    private void showError(String msg) {
         binding.tilEmail.setError(msg);
     }
 

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.app.mycity.databinding.ActivityForgotPasswordBinding;
+import com.app.mycity.util.FirebaseErrors;
 
 public class ForgotPasswordActivity extends AppCompatActivity {
 
@@ -45,12 +46,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
-                    String msg = e.getMessage();
-                    if (msg != null && msg.contains("no user")) {
-                        binding.tilEmail.setError("Пользователь с таким email не найден");
-                    } else {
-                        binding.tilEmail.setError("Ошибка. Попробуйте позже");
-                    }
+                    binding.tilEmail.setError(FirebaseErrors.humanize(e));
                 });
     }
 

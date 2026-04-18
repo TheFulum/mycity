@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.app.mycity.databinding.ActivityLoginBinding;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.util.FirebaseErrors;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -72,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(r -> { setLoading(false); goToMain(); })
-                .addOnFailureListener(e -> { setLoading(false); showError(mapAuthError(e.getMessage())); });
+                .addOnFailureListener(e -> { setLoading(false); showError(FirebaseErrors.humanize(e)); });
     }
 
     private void startPhoneAuth() {
@@ -103,14 +104,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private void showError(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-    }
-
-    private String mapAuthError(String raw) {
-        if (raw == null) return "Ошибка входа";
-        if (raw.contains("no user"))  return "Пользователь не найден";
-        if (raw.contains("password")) return "Неверный пароль";
-        if (raw.contains("network"))  return "Нет подключения к интернету";
-        return "Ошибка входа. Попробуйте ещё раз";
     }
 
     private void setLoading(boolean loading) {

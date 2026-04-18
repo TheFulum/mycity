@@ -33,6 +33,7 @@ import com.app.mycity.databinding.FragmentCreateIssueBinding;
 import com.app.mycity.databinding.ItemCreatePhotoBinding;
 import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.CloudinaryManager;
+import com.app.mycity.util.DraftStore;
 import com.app.mycity.util.GeoUtils;
 import com.app.mycity.util.SessionManager;
 import com.bumptech.glide.Glide;
@@ -40,6 +41,13 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import org.osmdroid.events.MapEventsReceiver;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.CustomZoomButtonsController;
+import org.osmdroid.views.overlay.MapEventsOverlay;
+import org.osmdroid.views.overlay.Marker;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -64,6 +72,9 @@ public class CreateIssueFragment extends Fragment {
     private FusedLocationProviderClient locationClient;
     private final IssueRepository issueRepo = new IssueRepository();
     private final UserRepository userRepo = new UserRepository();
+    private DraftStore draftStore;
+    private boolean submitted;
+    private Marker pickerMarker;
 
     private ActivityResultLauncher<String[]> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -79,18 +90,86 @@ public class CreateIssueFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         locationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        draftStore = new DraftStore(requireContext());
         isGuest = new SessionManager(requireContext()).isGuest()
                 || FirebaseAuth.getInstance().getCurrentUser() == null;
         b.guestBlock.setVisibility(isGuest ? View.VISIBLE : View.GONE);
 
         registerLaunchers();
+        initMap();
 
         b.btnCamera.setOnClickListener(v -> requestCamera());
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
         b.btnPickLocation.setOnClickListener(v -> requestLocation());
+        b.btnMyLocation.setOnClickListener(v -> requestLocation());
         b.btnSubmit.setOnClickListener(v -> submit());
 
-        requestLocation();
+        boolean draftRestored = restoreDraft();
+        if (!draftRestored || pendingLat == null || pendingLng == null) {
+            requestLocation();
+        }
+    }
+
+    private boolean restoreDraft() {
+        if (draftStore == null || !draftStore.hasDraft()) return false;
+
+        b.etTitle.setText(draftStore.getTitle());
+        b.etDescription.setText(draftStore.getDescription());
+        if (isGuest) {
+            b.etName.setText(draftStore.getGuestName());
+            b.etContact.setText(draftStore.getGuestContact());
+        }
+
+        Double lat = draftStore.getLat();
+        Double lng = draftStore.getLng();
+        if (lat != null && lng != null) {
+            pendingLat = lat;
+            pendingLng = lng;
+            String addr = draftStore.getAddress();
+            if (!TextUtils.isEmpty(addr)) {
+                pendingAddress = addr;
+                b.tvAddress.setText(addr);
+            } else {
+                b.tvAddress.setText(GeoUtils.formatCoords(lat, lng));
+            }
+            updateMarker(lat, lng);
+        }
+
+        selectedUris.clear();
+        for (Uri u : draftStore.getPhotos()) {
+            if (isUriAccessible(u)) selectedUris.add(u);
+        }
+        if (!selectedUris.isEmpty()) rebuildPhotoRow();
+
+        toast("Черновик восстановлен");
+        return true;
+    }
+
+    private boolean isUriAccessible(Uri uri) {
+        try (java.io.InputStream is = requireContext().getContentResolver().openInputStream(uri)) {
+            return is != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void persistDraft() {
+        if (b == null || draftStore == null || submitted) return;
+        String title = b.etTitle.getText() == null ? "" : b.etTitle.getText().toString();
+        String desc = b.etDescription.getText() == null ? "" : b.etDescription.getText().toString();
+        String guestName = isGuest && b.etName.getText() != null ? b.etName.getText().toString() : "";
+        String guestContact = isGuest && b.etContact.getText() != null ? b.etContact.getText().toString() : "";
+
+        boolean anyContent = !TextUtils.isEmpty(title) || !TextUtils.isEmpty(desc)
+                || !selectedUris.isEmpty()
+                || !TextUtils.isEmpty(guestName) || !TextUtils.isEmpty(guestContact);
+
+        if (!anyContent) {
+            draftStore.clear();
+            return;
+        }
+        draftStore.save(title, desc, pendingLat, pendingLng, pendingAddress,
+                selectedUris, guestName, guestContact);
     }
 
     private void registerLaunchers() {
@@ -129,7 +208,10 @@ public class CreateIssueFragment extends Fragment {
                     Boolean fine = perms.get(Manifest.permission.ACCESS_FINE_LOCATION);
                     Boolean coarse = perms.get(Manifest.permission.ACCESS_COARSE_LOCATION);
                     if ((fine != null && fine) || (coarse != null && coarse)) fetchLocation();
-                    else useDefaultLocation();
+                    else {
+                        useDefaultLocation();
+                        toast("Геолокация недоступна — используются координаты центра города");
+                    }
                 });
     }
 
@@ -186,13 +268,44 @@ public class CreateIssueFragment extends Fragment {
 
     private void useDefaultLocation() {
         setCoords(GeoUtils.MOGILEV_LAT, GeoUtils.MOGILEV_LNG);
-        toast("Использованы координаты центра города");
+    }
+
+    private void initMap() {
+        b.mapPicker.setTileSource(TileSourceFactory.MAPNIK);
+        b.mapPicker.setMultiTouchControls(true);
+        b.mapPicker.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
+        b.mapPicker.getController().setZoom((double) GeoUtils.DEFAULT_ZOOM);
+        b.mapPicker.getController().setCenter(new GeoPoint(GeoUtils.MOGILEV_LAT, GeoUtils.MOGILEV_LNG));
+
+        MapEventsOverlay eventsOverlay = new MapEventsOverlay(new MapEventsReceiver() {
+            @Override public boolean singleTapConfirmedHelper(GeoPoint p) {
+                setCoords(p.getLatitude(), p.getLongitude());
+                return true;
+            }
+            @Override public boolean longPressHelper(GeoPoint p) { return false; }
+        });
+        b.mapPicker.getOverlays().add(eventsOverlay);
+    }
+
+    private void updateMarker(double lat, double lng) {
+        if (b == null) return;
+        GeoPoint point = new GeoPoint(lat, lng);
+        if (pickerMarker == null) {
+            pickerMarker = new Marker(b.mapPicker);
+            pickerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+            pickerMarker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker));
+            b.mapPicker.getOverlays().add(pickerMarker);
+        }
+        pickerMarker.setPosition(point);
+        b.mapPicker.getController().animateTo(point);
+        b.mapPicker.invalidate();
     }
 
     private void setCoords(double lat, double lng) {
         pendingLat = lat;
         pendingLng = lng;
         b.tvAddress.setText(GeoUtils.formatCoords(lat, lng));
+        updateMarker(lat, lng);
         NominatimClient.get().reverse(NominatimClient.userAgent(), lat, lng)
                 .enqueue(new Callback<NominatimResponse>() {
                     @Override
@@ -258,13 +371,7 @@ public class CreateIssueFragment extends Fragment {
         issue.setId(issueId);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null && !isGuest) {
-            issue.setAuthorId(user.getUid());
-            issue.setAuthorName(user.getDisplayName());
-        } else {
-            issue.setAuthorName(guestName);
-            issue.setAuthorContact(guestContact);
-        }
+
         issue.setTitle(title);
         issue.setDescription(desc);
         issue.setLat(pendingLat);
@@ -273,7 +380,24 @@ public class CreateIssueFragment extends Fragment {
         issue.setStatus(Issue.STATUS_ACTIVE);
         issue.setCreatedAt(new Date());
 
-        uploadPhotosSequentially(issue, 0, new ArrayList<>(), user);
+        if (user != null && !isGuest) {
+            issue.setAuthorId(user.getUid());
+            userRepo.get(user.getUid()).addOnSuccessListener(snap -> {
+                String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
+                if (name == null || name.isEmpty()) {
+                    name = user.getEmail() != null ? user.getEmail() : "Пользователь";
+                }
+                issue.setAuthorName(name);
+                uploadPhotosSequentially(issue, 0, new ArrayList<>(), user);
+            }).addOnFailureListener(e -> {
+                issue.setAuthorName(user.getEmail() != null ? user.getEmail() : "Пользователь");
+                uploadPhotosSequentially(issue, 0, new ArrayList<>(), user);
+            });
+        } else {
+            issue.setAuthorName(guestName);
+            issue.setAuthorContact(guestContact);
+            uploadPhotosSequentially(issue, 0, new ArrayList<>(), user);
+        }
     }
 
     private void uploadPhotosSequentially(Issue issue, int index, List<String> urls, FirebaseUser user) {
@@ -281,9 +405,15 @@ public class CreateIssueFragment extends Fragment {
             issue.setPhotoUrls(urls);
             issueRepo.save(issue).addOnSuccessListener(v -> {
                 if (user != null && !isGuest) userRepo.incrementIssueCount(user.getUid(), 1);
+                submitted = true;
+                if (draftStore != null) draftStore.clear();
                 setLoading(false);
                 toast("Заявка создана");
-                if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).popHost();
+                if (getActivity() instanceof MainActivity) {
+                    MainActivity main = (MainActivity) getActivity();
+                    main.popHostToRoot();
+                    main.openIssueDetail(issue.getId());
+                }
             }).addOnFailureListener(e -> {
                 setLoading(false);
                 toast("Ошибка сохранения: " + e.getMessage());
@@ -314,6 +444,19 @@ public class CreateIssueFragment extends Fragment {
     private void toast(String msg) {
         Context ctx = getContext();
         if (ctx != null) Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (b != null) b.mapPicker.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        persistDraft();
+        if (b != null) b.mapPicker.onPause();
+        super.onPause();
     }
 
     @Override

@@ -7,6 +7,9 @@ import java.util.Date;
 @IgnoreExtraProperties
 public class UserProfile {
 
+    public static final String ROLE_USER = "user";
+    public static final String ROLE_ADMIN = "admin";
+
     private String uid;
 
     private String displayName;
@@ -15,8 +18,14 @@ public class UserProfile {
     private String avatarUrl;
     private int issueCount;
     private Date createdAt;
+    private String role;
 
     public UserProfile() { }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public boolean isAdmin() { return ROLE_ADMIN.equals(role); }
 
     public String getUid() { return uid; }
     public void setUid(String uid) { this.uid = uid; }

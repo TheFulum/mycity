@@ -59,4 +59,23 @@ public class UserRepository {
     public Task<Void> incrementIssueCount(String uid, int delta) {
         return doc(uid).update("issueCount", FieldValue.increment(delta));
     }
+
+    public Task<Void> updateRole(String uid, String role) {
+        return doc(uid).update("role", role);
+    }
+
+    public ListenerRegistration listenAll(IssueRepository.Listener<java.util.List<UserProfile>> listener) {
+        return db.collection("users")
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener((snap, error) -> {
+                    java.util.List<UserProfile> list = new java.util.ArrayList<>();
+                    if (snap != null) {
+                        for (com.google.firebase.firestore.DocumentSnapshot d : snap.getDocuments()) {
+                            UserProfile p = d.toObject(UserProfile.class);
+                            if (p != null) { p.setUid(d.getId()); list.add(p); }
+                        }
+                    }
+                    listener.onResult(list, error);
+                });
+    }
 }

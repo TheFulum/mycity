@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.mycity.R;
@@ -19,18 +20,39 @@ import java.util.List;
 public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> {
 
     public interface OnClick { void onClick(Issue issue); }
+    public interface OnAuthorClick { void onClick(String authorId); }
 
-    private final List<Issue> items = new ArrayList<>();
+    private List<Issue> items = new ArrayList<>();
     private final OnClick onClick;
+    private OnAuthorClick onAuthorClick;
 
     public IssueCardAdapter(OnClick onClick) {
         this.onClick = onClick;
     }
 
-    public void submit(List<Issue> list) {
-        items.clear();
-        items.addAll(list);
-        notifyDataSetChanged();
+    public void setOnAuthorClick(OnAuthorClick cb) { this.onAuthorClick = cb; }
+
+    public void submit(List<Issue> newList) {
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override public int getOldListSize() { return items.size(); }
+            @Override public int getNewListSize() { return newList.size(); }
+            @Override public boolean areItemsTheSame(int o, int n) {
+                String oid = items.get(o).getId();
+                String nid = newList.get(n).getId();
+                return oid != null && oid.equals(nid);
+            }
+            @Override public boolean areContentsTheSame(int o, int n) {
+                Issue a = items.get(o), b = newList.get(n);
+                return equals(a.getTitle(), b.getTitle())
+                        && equals(a.getStatus(), b.getStatus())
+                        && a.getCommentCount() == b.getCommentCount();
+            }
+            private boolean equals(String a, String b) {
+                return a == null ? b == null : a.equals(b);
+            }
+        });
+        items = new ArrayList<>(newList);
+        result.dispatchUpdatesTo(this);
     }
 
     @NonNull @Override
@@ -61,6 +83,20 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
             b.tvAddress.setText(issue.getAddress() != null ? issue.getAddress() : "");
             b.tvDescription.setText(issue.getDescription());
             b.tvDate.setText(DateUtils.format(issue.getCreatedAt()));
+
+            String author = issue.getAuthorName();
+            if (author != null && !author.isEmpty()) {
+                b.tvAuthorName.setText(author);
+                b.tvAuthorName.setVisibility(View.VISIBLE);
+                String aid = issue.getAuthorId();
+                if (aid != null && onAuthorClick != null) {
+                    b.tvAuthorName.setOnClickListener(v -> onAuthorClick.onClick(aid));
+                } else {
+                    b.tvAuthorName.setOnClickListener(null);
+                }
+            } else {
+                b.tvAuthorName.setVisibility(View.GONE);
+            }
 
             if (issue.isResolved()) {
                 b.tvStatus.setText(R.string.status_resolved);

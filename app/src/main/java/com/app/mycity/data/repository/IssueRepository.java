@@ -36,14 +36,9 @@ public class IssueRepository {
     }
 
     public ListenerRegistration listen(SortField sort, boolean asc, StatusFilter filter, Listener<List<Issue>> listener) {
-        Query q = db.collection(COLLECTION);
-        if (filter == StatusFilter.ACTIVE) {
-            q = q.whereEqualTo("status", Issue.STATUS_ACTIVE);
-        } else if (filter == StatusFilter.RESOLVED) {
-            q = q.whereEqualTo("status", Issue.STATUS_RESOLVED);
-        }
         String field = sort == SortField.COMMENTS ? "commentCount" : "createdAt";
-        q = q.orderBy(field, asc ? Query.Direction.ASCENDING : Query.Direction.DESCENDING);
+        Query q = db.collection(COLLECTION)
+                .orderBy(field, asc ? Query.Direction.ASCENDING : Query.Direction.DESCENDING);
 
         return q.addSnapshotListener((snap, error) -> {
             if (error != null || snap == null) {
@@ -51,22 +46,36 @@ public class IssueRepository {
                 return;
             }
             List<Issue> list = snap.toObjects(Issue.class);
+            if (filter == StatusFilter.ACTIVE || filter == StatusFilter.RESOLVED) {
+                String want = filter == StatusFilter.ACTIVE ? Issue.STATUS_ACTIVE : Issue.STATUS_RESOLVED;
+                List<Issue> filtered = new ArrayList<>();
+                for (Issue i : list) if (want.equals(i.getStatus())) filtered.add(i);
+                list = filtered;
+            }
             listener.onResult(list, null);
         });
     }
 
     public ListenerRegistration listenByAuthor(String uid, boolean resolved, Listener<List<Issue>> listener) {
-        Query q = db.collection(COLLECTION)
+        String wantedStatus = resolved ? Issue.STATUS_RESOLVED : Issue.STATUS_ACTIVE;
+        return db.collection(COLLECTION)
                 .whereEqualTo("authorId", uid)
-                .whereEqualTo("status", resolved ? Issue.STATUS_RESOLVED : Issue.STATUS_ACTIVE)
-                .orderBy("createdAt", Query.Direction.DESCENDING);
-        return q.addSnapshotListener((snap, error) -> {
-            if (error != null || snap == null) {
-                listener.onResult(new ArrayList<>(), error);
-                return;
-            }
-            listener.onResult(snap.toObjects(Issue.class), null);
-        });
+                .addSnapshotListener((snap, error) -> {
+                    if (error != null || snap == null) {
+                        listener.onResult(new ArrayList<>(), error);
+                        return;
+                    }
+                    List<Issue> filtered = new ArrayList<>();
+                    for (Issue i : snap.toObjects(Issue.class)) {
+                        if (wantedStatus.equals(i.getStatus())) filtered.add(i);
+                    }
+                    filtered.sort((a, b) -> {
+                        if (a.getCreatedAt() == null) return 1;
+                        if (b.getCreatedAt() == null) return -1;
+                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                    });
+                    listener.onResult(filtered, null);
+                });
     }
 
     public Task<QuerySnapshot> activeIssues() {
@@ -93,6 +102,26 @@ public class IssueRepository {
     public Task<Void> incrementCommentCount(String issueId, int delta) {
         return db.collection(COLLECTION).document(issueId)
                 .update("commentCount", FieldValue.increment(delta));
+    }
+
+    public Task<Void> delete(String issueId) {
+        return db.collection(COLLECTION).document(issueId).delete();
+    }
+
+    public Task<Void> setStatus(String issueId, String status) {
+        return db.collection(COLLECTION).document(issueId).update("status", status);
+    }
+
+    public Task<Void> resolve(String issueId, String resolvedBy, String resolvedByName,
+                              String report, java.util.List<String> photoUrls) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("status", Issue.STATUS_RESOLVED);
+        data.put("resolvedAt", new java.util.Date());
+        data.put("resolvedBy", resolvedBy);
+        data.put("resolvedByName", resolvedByName);
+        data.put("resolveReport", report);
+        data.put("reportPhotoUrls", photoUrls);
+        return db.collection(COLLECTION).document(issueId).update(data);
     }
 
     public interface Listener<T> {
