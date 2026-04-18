@@ -109,6 +109,12 @@ public class MainActivity extends AppCompatActivity {
     private void setupToolbar() {
         binding.ivAvatar.setOnClickListener(v -> openHostFragment(new ProfileFragment(), "profile"));
         binding.btnBell.setOnClickListener(v -> openHostFragment(new NotificationsFragment(), "notifications"));
+        binding.tvTitle.setClickable(true);
+        binding.tvTitle.setFocusable(true);
+        binding.tvTitle.setOnClickListener(v -> {
+            popHostToRoot();
+            binding.viewPager.setCurrentItem(0, true);
+        });
 
         if (session.isGuest()) {
             binding.btnGuestExit.setVisibility(View.VISIBLE);
@@ -179,8 +185,9 @@ public class MainActivity extends AppCompatActivity {
         animateMiniFab(binding.fabAdd, true, 50);
         animateMiniFab(binding.fabArchive, true, 100);
         if (isAdmin) {
-            binding.fabAdminDivider.setVisibility(View.VISIBLE);
+            binding.fabAdminDivider.animate().cancel();
             binding.fabAdminDivider.setAlpha(0f);
+            binding.fabAdminDivider.setVisibility(View.VISIBLE);
             binding.fabAdminDivider.animate().alpha(1f).setStartDelay(140).setDuration(200).start();
             animateMiniFab(binding.fabAdminModerate, true, 150);
             animateMiniFab(binding.fabAdminUsers, true, 200);

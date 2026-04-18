@@ -91,7 +91,7 @@ public class MapFragment extends Fragment {
     private void showPopup(Issue issue) {
         b.popup.setVisibility(View.VISIBLE);
         b.popupTitle.setText(issue.getTitle());
-        b.popupAddress.setText(issue.getAddress() != null ? issue.getAddress() : "");
+        b.popupAddress.setText(com.app.mycity.util.GeoUtils.displayAddress(issue.getAddress()));
         b.popupDescription.setText(issue.getDescription());
         b.popupOpen.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {

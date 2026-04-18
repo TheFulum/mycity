@@ -61,6 +61,7 @@ import retrofit2.Response;
 public class CreateIssueFragment extends Fragment {
 
     private static final int MAX_PHOTOS = 5;
+    private static boolean locationToastShown = false;
 
     private FragmentCreateIssueBinding b;
     private final List<Uri> selectedUris = new ArrayList<>();
@@ -130,7 +131,7 @@ public class CreateIssueFragment extends Fragment {
                 pendingAddress = addr;
                 b.tvAddress.setText(addr);
             } else {
-                b.tvAddress.setText(GeoUtils.formatCoords(lat, lng));
+                b.tvAddress.setText("Определяем адрес…");
             }
             updateMarker(lat, lng);
         }
@@ -210,7 +211,10 @@ public class CreateIssueFragment extends Fragment {
                     if ((fine != null && fine) || (coarse != null && coarse)) fetchLocation();
                     else {
                         useDefaultLocation();
-                        toast("Геолокация недоступна — используются координаты центра города");
+                        if (!locationToastShown) {
+                            locationToastShown = true;
+                            toast("Геолокация недоступна — используются координаты центра города");
+                        }
                     }
                 });
     }
@@ -304,7 +308,8 @@ public class CreateIssueFragment extends Fragment {
     private void setCoords(double lat, double lng) {
         pendingLat = lat;
         pendingLng = lng;
-        b.tvAddress.setText(GeoUtils.formatCoords(lat, lng));
+        pendingAddress = null;
+        b.tvAddress.setText("Определяем адрес…");
         updateMarker(lat, lng);
         NominatimClient.get().reverse(NominatimClient.userAgent(), lat, lng)
                 .enqueue(new Callback<NominatimResponse>() {
@@ -313,14 +318,27 @@ public class CreateIssueFragment extends Fragment {
                                            @NonNull Response<NominatimResponse> response) {
                         if (b == null) return;
                         NominatimResponse body = response.body();
+                        android.util.Log.d("Nominatim", "code=" + response.code()
+                                + " body=" + (body != null ? body.displayName : "null"));
                         if (body != null) {
-                            pendingAddress = body.shortAddress();
-                            if (pendingAddress != null) b.tvAddress.setText(pendingAddress);
+                            String addr = body.shortAddress();
+                            if (addr != null && !addr.isEmpty()) {
+                                pendingAddress = addr;
+                                b.tvAddress.setText(addr);
+                            } else {
+                                b.tvAddress.setText("Адрес не найден");
+                            }
+                        } else {
+                            b.tvAddress.setText("Адрес не найден");
                         }
                     }
 
                     @Override
-                    public void onFailure(@NonNull Call<NominatimResponse> call, @NonNull Throwable t) { }
+                    public void onFailure(@NonNull Call<NominatimResponse> call, @NonNull Throwable t) {
+                        if (b == null) return;
+                        android.util.Log.e("Nominatim", "reverse failed", t);
+                        b.tvAddress.setText("Адрес не найден");
+                    }
                 });
     }
 
@@ -376,7 +394,8 @@ public class CreateIssueFragment extends Fragment {
         issue.setDescription(desc);
         issue.setLat(pendingLat);
         issue.setLng(pendingLng);
-        issue.setAddress(pendingAddress != null ? pendingAddress : GeoUtils.formatCoords(pendingLat, pendingLng));
+        issue.setAddress(pendingAddress != null && !pendingAddress.isEmpty()
+                ? pendingAddress : "Адрес не найден");
         issue.setStatus(Issue.STATUS_ACTIVE);
         issue.setCreatedAt(new Date());
 

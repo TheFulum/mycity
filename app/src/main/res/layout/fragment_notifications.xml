@@ -32,6 +32,19 @@
             android:text="Прочитать все"
             android:textColor="@color/accent_blue"
             android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/btn_delete_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:text="Очистить"
+            android:textColor="@color/accent_red"
+            android:textSize="13sp" />
     </LinearLayout>
 
     <View

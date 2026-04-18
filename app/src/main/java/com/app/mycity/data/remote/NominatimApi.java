@@ -9,7 +9,7 @@ public interface NominatimApi {
 
     String BASE_URL = "https://nominatim.openstreetmap.org/";
 
-    @GET("reverse?format=jsonv2&accept-language=ru")
+    @GET("reverse?format=jsonv2&accept-language=ru&zoom=18&addressdetails=1")
     Call<NominatimResponse> reverse(
             @Header("User-Agent") String userAgent,
             @Query("lat") double lat,

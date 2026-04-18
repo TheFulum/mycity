@@ -12,6 +12,7 @@ import com.app.mycity.R;
 import com.app.mycity.data.model.Issue;
 import com.app.mycity.databinding.ItemIssueCardBinding;
 import com.app.mycity.util.DateUtils;
+import com.app.mycity.util.GeoUtils;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
@@ -80,7 +81,7 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
 
         void bind(Issue issue) {
             b.tvTitle.setText(issue.getTitle());
-            b.tvAddress.setText(issue.getAddress() != null ? issue.getAddress() : "");
+            b.tvAddress.setText(GeoUtils.displayAddress(issue.getAddress()));
             b.tvDescription.setText(issue.getDescription());
             b.tvDate.setText(DateUtils.format(issue.getCreatedAt()));
 

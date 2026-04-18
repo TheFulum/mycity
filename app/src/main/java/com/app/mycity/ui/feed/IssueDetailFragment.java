@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -139,7 +140,8 @@ public class IssueDetailFragment extends Fragment {
 
         mapView = b.mapView;
         mapView.setTileSource(TileSourceFactory.MAPNIK);
-        mapView.setMultiTouchControls(true);
+        mapView.setMultiTouchControls(false);
+        mapView.setClickable(false);
         mapView.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         mapView.getController().setZoom((double) GeoUtils.DEFAULT_ZOOM);
 
@@ -251,7 +253,7 @@ public class IssueDetailFragment extends Fragment {
 
     private void renderIssue(Issue issue) {
         b.tvTitle.setText(issue.getTitle());
-        b.tvAddress.setText(issue.getAddress() != null ? issue.getAddress() : "");
+        b.tvAddress.setText(GeoUtils.displayAddress(issue.getAddress()));
         b.tvDescription.setText(issue.getDescription());
         b.tvDate.setText(DateUtils.format(issue.getCreatedAt()));
 
@@ -303,12 +305,18 @@ public class IssueDetailFragment extends Fragment {
         mapMarker.setPosition(point);
         mapView.invalidate();
 
-        mapView.setOnClickListener(v -> {
+        View.OnClickListener openFull = v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).openMapFullscreen(
                         issue.getLat(), issue.getLng(),
                         issue.getTitle() != null ? issue.getTitle() : "");
             }
+        };
+        b.mapClickOverlay.setOnClickListener(openFull);
+        b.mapContainer.setOnClickListener(openFull);
+        b.mapView.setOnTouchListener((v, ev) -> {
+            if (ev.getAction() == MotionEvent.ACTION_UP) openFull.onClick(v);
+            return true;
         });
 
         if (issue.isResolved() && (issue.getResolveReport() != null || issue.getResolvedBy() != null)) {

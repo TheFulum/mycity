@@ -19,11 +19,14 @@ import java.util.Objects;
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.VH> {
 
     public interface OnClickListener { void onClick(Notification n); }
+    public interface OnDeleteListener { void onDelete(Notification n); }
 
     private List<Notification> items = new ArrayList<>();
     private OnClickListener clickListener;
+    private OnDeleteListener deleteListener;
 
     public void setOnClickListener(OnClickListener l) { this.clickListener = l; }
+    public void setOnDeleteListener(OnDeleteListener l) { this.deleteListener = l; }
 
     public void submit(List<Notification> newList) {
         DiffUtil.DiffResult diff = DiffUtil.calculateDiff(new DiffUtil.Callback() {
@@ -60,6 +63,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 : h.itemView.getContext().getColor(R.color.bg_secondary);
         h.itemView.setBackgroundColor(bg);
         h.itemView.setOnClickListener(v -> { if (clickListener != null) clickListener.onClick(n); });
+        h.b.btnNotifDelete.setOnClickListener(v -> { if (deleteListener != null) deleteListener.onDelete(n); });
     }
 
     @Override public int getItemCount() { return items.size(); }

@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.app.mycity.data.repository.NotificationRepository;
 import com.app.mycity.databinding.FragmentNotificationsBinding;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -42,11 +43,25 @@ public class NotificationsFragment extends Fragment {
                 ((MainActivity) getActivity()).openIssueDetail(n.getIssueId());
             }
         });
+        adapter.setOnDeleteListener(n -> {
+            if (n.getId() == null) return;
+            new MaterialAlertDialogBuilder(requireContext(), com.app.mycity.R.style.DialogTheme)
+                    .setTitle("Удалить уведомление?")
+                    .setNegativeButton("Отмена", null)
+                    .setPositiveButton("Удалить", (d, w) -> repo.delete(n.getId()))
+                    .show();
+        });
         b.rvNotifications.setLayoutManager(new LinearLayoutManager(requireContext()));
         b.rvNotifications.setItemAnimator(null);
         b.rvNotifications.setAdapter(adapter);
 
         b.btnMarkAllRead.setOnClickListener(v -> repo.markAllRead(uid));
+        b.btnDeleteAll.setOnClickListener(v ->
+                new MaterialAlertDialogBuilder(requireContext(), com.app.mycity.R.style.DialogTheme)
+                        .setTitle("Очистить все уведомления?")
+                        .setNegativeButton("Отмена", null)
+                        .setPositiveButton("Очистить", (d, w) -> repo.deleteAll(uid))
+                        .show());
 
         listener = repo.listenAll(uid, (list, err) -> {
             if (b == null) return;

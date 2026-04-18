@@ -167,14 +167,18 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         setLoading(true);
         userRepo.get(uid).addOnSuccessListener(snap -> {
             String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
-            if (name == null || name.isEmpty()) {
-                name = user.getEmail() != null ? user.getEmail() : uid;
-            }
-            uploadPhotos(issueId, uid, name, report, 0, new ArrayList<>());
+            uploadPhotos(issueId, uid, resolveAdminName(name, user), report, 0, new ArrayList<>());
         }).addOnFailureListener(e -> {
-            String name = user.getEmail() != null ? user.getEmail() : uid;
-            uploadPhotos(issueId, uid, name, report, 0, new ArrayList<>());
+            uploadPhotos(issueId, uid, resolveAdminName(null, user), report, 0, new ArrayList<>());
         });
+    }
+
+    private String resolveAdminName(String firestoreName, FirebaseUser user) {
+        if (firestoreName != null && !firestoreName.trim().isEmpty()) return firestoreName.trim();
+        if (user != null && user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
+            return user.getDisplayName().trim();
+        }
+        return "Администратор";
     }
 
     private void uploadPhotos(String issueId, String uid, String displayName,

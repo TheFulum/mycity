@@ -1,5 +1,7 @@
 package com.app.mycity.data.repository;
 
+import android.util.Log;
+
 import com.app.mycity.data.model.Notification;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -13,6 +15,7 @@ import java.util.Map;
 
 public class NotificationRepository {
 
+    private static final String TAG = "NotifRepo";
     private static final String COLLECTION = "notifications";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -21,16 +24,40 @@ public class NotificationRepository {
         data.put("userId", userId);
         data.put("issueId", issueId);
         data.put("issueTitle", issueTitle);
-        data.put("message", "Администратор " + adminName + " закрыл вашу заявку");
+        String safeTitle = issueTitle != null && !issueTitle.isEmpty() ? issueTitle : "заявку";
+        String safeAdmin = adminName != null && !adminName.isEmpty() ? adminName : "Администратор";
+        data.put("message", safeAdmin + " закрыл заявку «" + safeTitle + "»");
         data.put("createdAt", new Date());
         data.put("read", false);
-        return db.collection(COLLECTION).document().set(data);
+        return db.collection(COLLECTION).document().set(data)
+                .addOnSuccessListener(v -> Log.d(TAG, "send OK for user=" + userId + " issue=" + issueId))
+                .addOnFailureListener(e -> Log.e(TAG, "send FAILED for user=" + userId, e));
+    }
+
+    public Task<Void> delete(String notificationId) {
+        return db.collection(COLLECTION).document(notificationId).delete()
+                .addOnFailureListener(e -> Log.e(TAG, "delete FAILED " + notificationId, e));
+    }
+
+    public void deleteAll(String userId) {
+        db.collection(COLLECTION)
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(snap -> {
+                    if (snap.isEmpty()) return;
+                    WriteBatch batch = db.batch();
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snap) {
+                        batch.delete(doc.getReference());
+                    }
+                    batch.commit();
+                });
     }
 
     public ListenerRegistration listenUnreadCount(String userId, UnreadCountListener listener) {
         return db.collection(COLLECTION)
                 .whereEqualTo("userId", userId)
                 .addSnapshotListener((snap, err) -> {
+                    if (err != null) Log.e(TAG, "listenUnreadCount error", err);
                     if (snap == null) { listener.onCount(0); return; }
                     int count = 0;
                     for (com.google.firebase.firestore.DocumentSnapshot doc : snap.getDocuments()) {
@@ -45,6 +72,7 @@ public class NotificationRepository {
         return db.collection(COLLECTION)
                 .whereEqualTo("userId", userId)
                 .addSnapshotListener((snap, err) -> {
+                    if (err != null) Log.e(TAG, "listenAll error", err);
                     if (err != null || snap == null) {
                         listener.onResult(new java.util.ArrayList<>(), err);
                         return;
@@ -55,6 +83,7 @@ public class NotificationRepository {
                         if (b.getCreatedAt() == null) return -1;
                         return b.getCreatedAt().compareTo(a.getCreatedAt());
                     });
+                    Log.d(TAG, "listenAll: " + list.size() + " notifications for " + userId);
                     listener.onResult(list, null);
                 });
     }
