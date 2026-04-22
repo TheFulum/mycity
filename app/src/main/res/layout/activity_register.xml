@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="36dp"
                 android:text="Регистрация"
-                android:textColor="#F1F5F9"
+                android:textColor="@color/text_primary"
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.01"
@@ -130,7 +130,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilEmail"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.MyCity.TextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Email"
@@ -143,12 +143,12 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textEmailAddress"
-                                android:textColor="#F1F5F9"/>
+                                android:textColor="@color/text_primary"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilPassword"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.MyCity.TextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
@@ -164,12 +164,12 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPassword"
-                                android:textColor="#F1F5F9"/>
+                                android:textColor="@color/text_primary"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilPasswordConfirm"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.MyCity.TextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="14dp"
@@ -185,7 +185,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:inputType="textPassword"
-                                android:textColor="#F1F5F9"/>
+                                android:textColor="@color/text_primary"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </LinearLayout>
@@ -201,7 +201,7 @@
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilPhone"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.MyCity.TextInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Номер телефона"
@@ -217,7 +217,7 @@
                                 android:layout_height="wrap_content"
                                 android:inputType="number"
                                 android:maxLength="9"
-                                android:textColor="#F1F5F9"/>
+                                android:textColor="@color/text_primary"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView

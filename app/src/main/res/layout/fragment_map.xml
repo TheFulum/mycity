@@ -12,27 +12,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/filters"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/chip_date"
-            style="@style/FilterChip"
-            android:text="Дата ↓" />
-
-        <TextView
-            android:id="@+id/chip_comments"
-            style="@style/FilterChip"
-            android:layout_marginStart="8dp"
-            android:text="Комментарии" />
-    </LinearLayout>
-
     <!-- Popup -->
     <LinearLayout
         android:id="@+id/popup"

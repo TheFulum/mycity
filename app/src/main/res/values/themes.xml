@@ -9,6 +9,26 @@
         <item name="android:navigationBarColor">@color/bg_primary</item>
         <item name="android:textColorPrimary">@color/text_primary</item>
         <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="textInputStyle">@style/Widget.MyCity.TextInput</item>
+    </style>
+
+    <style name="Widget.MyCity.TextInput" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/input_bg</item>
+        <item name="boxStrokeColor">@color/input_stroke</item>
+        <item name="hintTextColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="counterTextColor">@color/text_secondary</item>
+        <item name="counterOverflowTextColor">@color/accent_red</item>
+        <item name="helperTextTextColor">@color/text_secondary</item>
+        <item name="errorTextColor">@color/accent_red</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.MyCity.TextInputEditText</item>
+    </style>
+
+    <style name="ThemeOverlay.MyCity.TextInputEditText" parent="ThemeOverlay.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorControlActivated">@color/accent_blue</item>
+        <item name="android:textColor">@color/text_primary</item>
     </style>
 
     <!-- Для splash без анимации перехода -->

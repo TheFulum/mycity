@@ -25,7 +25,7 @@
         android:inputType="text"
         android:padding="12dp"
         android:textColor="@color/text_primary"
-        android:textColorHint="@color/text_hint"
+        android:textColorHint="@color/text_secondary"
         android:textSize="13sp" />
 
     <TextView

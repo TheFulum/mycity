@@ -26,7 +26,6 @@ import com.app.mycity.data.repository.NotificationRepository;
 import com.app.mycity.ui.admin.AdminModerationFragment;
 import com.app.mycity.ui.admin.AdminStatsFragment;
 import com.app.mycity.ui.admin.AdminUsersFragment;
-import com.app.mycity.ui.archive.ArchiveFragment;
 import com.app.mycity.ui.create.CreateIssueFragment;
 import com.app.mycity.ui.feed.FeedFragment;
 import com.app.mycity.ui.feed.EditIssueFragment;
@@ -104,11 +103,16 @@ public class MainActivity extends AppCompatActivity {
             @Override public int getItemCount() { return 2; }
         });
         binding.viewPager.setOffscreenPageLimit(1);
+        binding.viewPager.registerOnPageChangeCallback(
+                new androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+                    @Override public void onPageSelected(int position) {
+                        binding.viewPager.setUserInputEnabled(position == 0);
+                    }
+                });
     }
 
     private void setupToolbar() {
         binding.ivAvatar.setOnClickListener(v -> openHostFragment(new ProfileFragment(), "profile"));
-        binding.btnBell.setOnClickListener(v -> openHostFragment(new NotificationsFragment(), "notifications"));
         binding.tvTitle.setClickable(true);
         binding.tvTitle.setFocusable(true);
         binding.tvTitle.setOnClickListener(v -> {
@@ -116,14 +120,21 @@ public class MainActivity extends AppCompatActivity {
             binding.viewPager.setCurrentItem(0, true);
         });
 
+        binding.btnGuestExit.setVisibility(View.GONE);
+
         if (session.isGuest()) {
-            binding.btnGuestExit.setVisibility(View.VISIBLE);
-            binding.btnGuestExit.setOnClickListener(v -> {
+            binding.btnBell.setImageResource(R.drawable.ic_home);
+            binding.btnBell.setColorFilter(ContextCompat.getColor(this, R.color.accent_blue));
+            binding.btnBell.setContentDescription(getString(R.string.app_title));
+            binding.tvBellBadge.setVisibility(View.GONE);
+            binding.btnBell.setOnClickListener(v -> {
                 session.clear();
                 Intent i = new Intent(this, com.app.mycity.ui.auth.SplashActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(i);
             });
+        } else {
+            binding.btnBell.setOnClickListener(v -> openHostFragment(new NotificationsFragment(), "notifications"));
         }
     }
 
@@ -153,10 +164,6 @@ public class MainActivity extends AppCompatActivity {
             collapseFab();
             openHostFragment(new CreateIssueFragment(), "create");
         });
-        binding.fabArchive.setOnClickListener(v -> {
-            collapseFab();
-            openHostFragment(new ArchiveFragment(), "archive");
-        });
         binding.fabAdminModerate.setOnClickListener(v -> {
             collapseFab();
             openHostFragment(new AdminModerationFragment(), "admin_moderate");
@@ -183,12 +190,7 @@ public class MainActivity extends AppCompatActivity {
         refreshActiveFab();
         animateMiniFab(binding.fabHome, true, 0);
         animateMiniFab(binding.fabAdd, true, 50);
-        animateMiniFab(binding.fabArchive, true, 100);
         if (isAdmin) {
-            binding.fabAdminDivider.animate().cancel();
-            binding.fabAdminDivider.setAlpha(0f);
-            binding.fabAdminDivider.setVisibility(View.VISIBLE);
-            binding.fabAdminDivider.animate().alpha(1f).setStartDelay(140).setDuration(200).start();
             animateMiniFab(binding.fabAdminModerate, true, 150);
             animateMiniFab(binding.fabAdminUsers, true, 200);
             animateMiniFab(binding.fabAdminStats, true, 250);
@@ -201,8 +203,6 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton active;
         if (host instanceof CreateIssueFragment) {
             active = binding.fabAdd;
-        } else if (host instanceof ArchiveFragment) {
-            active = binding.fabArchive;
         } else if (host instanceof AdminModerationFragment) {
             active = binding.fabAdminModerate;
         } else if (host instanceof AdminUsersFragment) {
@@ -216,7 +216,6 @@ public class MainActivity extends AppCompatActivity {
         }
         applyFabTint(binding.fabHome, active == binding.fabHome, R.color.accent_blue);
         applyFabTint(binding.fabAdd, active == binding.fabAdd, R.color.accent_blue);
-        applyFabTint(binding.fabArchive, active == binding.fabArchive, R.color.accent_blue);
         applyFabTint(binding.fabAdminModerate, active == binding.fabAdminModerate, R.color.accent_red);
         applyFabTint(binding.fabAdminUsers, active == binding.fabAdminUsers, R.color.accent_red);
         applyFabTint(binding.fabAdminStats, active == binding.fabAdminStats, R.color.accent_red);
@@ -230,16 +229,13 @@ public class MainActivity extends AppCompatActivity {
     private void collapseFab() {
         if (!fabExpanded) return;
         fabExpanded = false;
-        if (binding.fabAdminDivider.getVisibility() == View.VISIBLE) {
-            binding.fabAdminDivider.animate().alpha(0f).setDuration(150)
-                    .withEndAction(() -> binding.fabAdminDivider.setVisibility(View.INVISIBLE)).start();
+        if (isAdmin) {
             animateMiniFab(binding.fabAdminStats, false, 0);
             animateMiniFab(binding.fabAdminUsers, false, 40);
             animateMiniFab(binding.fabAdminModerate, false, 80);
         }
-        animateMiniFab(binding.fabArchive, false, 0);
-        animateMiniFab(binding.fabAdd, false, 50);
-        animateMiniFab(binding.fabHome, false, 100);
+        animateMiniFab(binding.fabAdd, false, 0);
+        animateMiniFab(binding.fabHome, false, 50);
         binding.fabTrigger.animate().rotation(0).setDuration(250).start();
     }
 
@@ -282,6 +278,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void openMapFullscreen(double lat, double lng, String title) {
         openHostFragment(com.app.mycity.ui.map.MapFullscreenFragment.newInstance(lat, lng, title), "map_full");
+    }
+
+    public void openMapPicker(double lat, double lng) {
+        openHostFragment(com.app.mycity.ui.map.MapFullscreenFragment.newInstanceEditable(lat, lng, ""), "map_pick");
     }
 
     public void popHost() {

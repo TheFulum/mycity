@@ -99,9 +99,18 @@ public class CreateIssueFragment extends Fragment {
         registerLaunchers();
         initMap();
 
+        getParentFragmentManager().setFragmentResultListener(
+                com.app.mycity.ui.map.MapFullscreenFragment.RESULT_KEY,
+                getViewLifecycleOwner(),
+                (key, bundle) -> {
+                    double lat = bundle.getDouble(com.app.mycity.ui.map.MapFullscreenFragment.RESULT_LAT);
+                    double lng = bundle.getDouble(com.app.mycity.ui.map.MapFullscreenFragment.RESULT_LNG);
+                    setCoords(lat, lng);
+                });
+
         b.btnCamera.setOnClickListener(v -> requestCamera());
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
-        b.btnPickLocation.setOnClickListener(v -> requestLocation());
+        b.btnPickLocation.setOnClickListener(v -> openPickerFullscreen());
         b.btnMyLocation.setOnClickListener(v -> requestLocation());
         b.btnSubmit.setOnClickListener(v -> submit());
 
@@ -142,7 +151,6 @@ public class CreateIssueFragment extends Fragment {
         }
         if (!selectedUris.isEmpty()) rebuildPhotoRow();
 
-        toast("Черновик восстановлен");
         return true;
     }
 
@@ -163,7 +171,8 @@ public class CreateIssueFragment extends Fragment {
 
         boolean anyContent = !TextUtils.isEmpty(title) || !TextUtils.isEmpty(desc)
                 || !selectedUris.isEmpty()
-                || !TextUtils.isEmpty(guestName) || !TextUtils.isEmpty(guestContact);
+                || !TextUtils.isEmpty(guestName) || !TextUtils.isEmpty(guestContact)
+                || pendingLat != null || pendingLng != null;
 
         if (!anyContent) {
             draftStore.clear();
@@ -245,6 +254,15 @@ public class CreateIssueFragment extends Fragment {
         }
     }
 
+    private void openPickerFullscreen() {
+        double lat = pendingLat != null ? pendingLat : GeoUtils.MOGILEV_LAT;
+        double lng = pendingLng != null ? pendingLng : GeoUtils.MOGILEV_LNG;
+        persistDraft();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).openMapPicker(lat, lng);
+        }
+    }
+
     private void requestLocation() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED
@@ -293,16 +311,20 @@ public class CreateIssueFragment extends Fragment {
 
     private void updateMarker(double lat, double lng) {
         if (b == null) return;
-        GeoPoint point = new GeoPoint(lat, lng);
+        final GeoPoint point = new GeoPoint(lat, lng);
         if (pickerMarker == null) {
             pickerMarker = new Marker(b.mapPicker);
             pickerMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
             pickerMarker.setIcon(ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker));
+            pickerMarker.setInfoWindow(null);
             b.mapPicker.getOverlays().add(pickerMarker);
         }
         pickerMarker.setPosition(point);
-        b.mapPicker.getController().animateTo(point);
-        b.mapPicker.invalidate();
+        b.mapPicker.post(() -> {
+            if (b == null) return;
+            b.mapPicker.getController().setCenter(point);
+            b.mapPicker.invalidate();
+        });
     }
 
     private void setCoords(double lat, double lng) {
@@ -311,6 +333,52 @@ public class CreateIssueFragment extends Fragment {
         pendingAddress = null;
         b.tvAddress.setText("Определяем адрес…");
         updateMarker(lat, lng);
+        resolveAddress(lat, lng);
+    }
+
+    private String bestKnownAddress() {
+        if (pendingAddress != null && !pendingAddress.isEmpty()) return pendingAddress;
+        CharSequence shown = b != null ? b.tvAddress.getText() : null;
+        if (shown != null) {
+            String s = shown.toString().trim();
+            if (!s.isEmpty() && !s.equals("Определяем адрес…") && !s.equals("Адрес не найден")) {
+                return s;
+            }
+        }
+        return "Адрес не найден";
+    }
+
+    private void resolveAddress(double lat, double lng) {
+        // Fast path: Android Geocoder on background thread.
+        new Thread(() -> {
+            try {
+                android.location.Geocoder g = new android.location.Geocoder(
+                        requireContext().getApplicationContext(), new java.util.Locale("ru"));
+                java.util.List<android.location.Address> res = g.getFromLocation(lat, lng, 1);
+                if (res != null && !res.isEmpty()) {
+                    android.location.Address a = res.get(0);
+                    String street = a.getThoroughfare();
+                    String house = a.getSubThoroughfare();
+                    String locality = a.getLocality() != null ? a.getLocality() : a.getSubAdminArea();
+                    StringBuilder sb = new StringBuilder();
+                    if (street != null) sb.append(street);
+                    if (house != null) { if (sb.length() > 0) sb.append(", "); sb.append(house); }
+                    if (sb.length() == 0 && locality != null) sb.append(locality);
+                    final String addr = sb.toString();
+                    if (!addr.isEmpty()) {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            if (b == null || pendingAddress != null) return;
+                            pendingAddress = addr;
+                            b.tvAddress.setText(addr);
+                        });
+                    }
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("Geocoder", "failed", t);
+            }
+        }).start();
+
         NominatimClient.get().reverse(NominatimClient.userAgent(), lat, lng)
                 .enqueue(new Callback<NominatimResponse>() {
                     @Override
@@ -320,15 +388,11 @@ public class CreateIssueFragment extends Fragment {
                         NominatimResponse body = response.body();
                         android.util.Log.d("Nominatim", "code=" + response.code()
                                 + " body=" + (body != null ? body.displayName : "null"));
-                        if (body != null) {
-                            String addr = body.shortAddress();
-                            if (addr != null && !addr.isEmpty()) {
-                                pendingAddress = addr;
-                                b.tvAddress.setText(addr);
-                            } else {
-                                b.tvAddress.setText("Адрес не найден");
-                            }
-                        } else {
+                        String addr = body != null ? body.shortAddress() : null;
+                        if (addr != null && !addr.isEmpty()) {
+                            pendingAddress = addr;
+                            b.tvAddress.setText(addr);
+                        } else if (pendingAddress == null) {
                             b.tvAddress.setText("Адрес не найден");
                         }
                     }
@@ -337,7 +401,7 @@ public class CreateIssueFragment extends Fragment {
                     public void onFailure(@NonNull Call<NominatimResponse> call, @NonNull Throwable t) {
                         if (b == null) return;
                         android.util.Log.e("Nominatim", "reverse failed", t);
-                        b.tvAddress.setText("Адрес не найден");
+                        if (pendingAddress == null) b.tvAddress.setText("Адрес не найден");
                     }
                 });
     }
@@ -394,8 +458,7 @@ public class CreateIssueFragment extends Fragment {
         issue.setDescription(desc);
         issue.setLat(pendingLat);
         issue.setLng(pendingLng);
-        issue.setAddress(pendingAddress != null && !pendingAddress.isEmpty()
-                ? pendingAddress : "Адрес не найден");
+        issue.setAddress(bestKnownAddress());
         issue.setStatus(Issue.STATUS_ACTIVE);
         issue.setCreatedAt(new Date());
 
@@ -468,7 +531,12 @@ public class CreateIssueFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (b != null) b.mapPicker.onResume();
+        if (b != null) {
+            b.mapPicker.onResume();
+            if (pendingLat != null && pendingLng != null) {
+                updateMarker(pendingLat, pendingLng);
+            }
+        }
     }
 
     @Override
@@ -479,5 +547,9 @@ public class CreateIssueFragment extends Fragment {
     }
 
     @Override
-    public void onDestroyView() { super.onDestroyView(); b = null; }
+    public void onDestroyView() {
+        super.onDestroyView();
+        pickerMarker = null;
+        b = null;
+    }
 }

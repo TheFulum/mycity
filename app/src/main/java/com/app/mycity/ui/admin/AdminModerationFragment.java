@@ -18,12 +18,18 @@ import com.app.mycity.databinding.FragmentAdminModerationBinding;
 import com.app.mycity.ui.main.MainActivity;
 import com.google.firebase.firestore.ListenerRegistration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class AdminModerationFragment extends Fragment {
 
     private FragmentAdminModerationBinding b;
     private final IssueRepository issueRepo = new IssueRepository();
     private ListenerRegistration listener;
     private AdminIssueAdapter adapter;
+    private List<Issue> allIssues = new ArrayList<>();
+    private String query = "";
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -49,9 +55,34 @@ public class AdminModerationFragment extends Fragment {
         listener = issueRepo.listen(IssueRepository.SortField.DATE, false,
                 IssueRepository.StatusFilter.ALL, (list, err) -> {
                     if (b == null) return;
-                    adapter.submit(list);
-                    b.tvEmpty.setVisibility(list.isEmpty() ? View.VISIBLE : View.GONE);
+                    allIssues = list != null ? list : new ArrayList<>();
+                    applyFilter();
                 });
+
+        b.etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b2, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b2, int c) {
+                query = s != null ? s.toString().trim().toLowerCase(Locale.ROOT) : "";
+                applyFilter();
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+    }
+
+    private void applyFilter() {
+        if (b == null) return;
+        List<Issue> filtered;
+        if (query.isEmpty()) {
+            filtered = allIssues;
+        } else {
+            filtered = new ArrayList<>();
+            for (Issue i : allIssues) {
+                String t = i.getTitle();
+                if (t != null && t.toLowerCase(Locale.ROOT).contains(query)) filtered.add(i);
+            }
+        }
+        adapter.submit(filtered);
+        b.tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
     private void toggleStatus(Issue issue) {

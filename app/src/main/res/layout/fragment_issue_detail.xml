@@ -132,22 +132,25 @@
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_card"
-            android:clickable="true"
-            android:clipToOutline="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:clipToOutline="true">
 
             <org.osmdroid.views.MapView
                 android:id="@+id/map_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <View
-                android:id="@+id/map_click_overlay"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clickable="true"
-                android:focusable="true" />
+            <ImageButton
+                android:id="@+id/btn_map_fullscreen"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/bg_badge_red"
+                android:backgroundTint="#AA000000"
+                android:contentDescription="На весь экран"
+                android:padding="8dp"
+                android:src="@drawable/ic_fullscreen"
+                android:tint="@color/text_primary" />
         </FrameLayout>
 
         <!-- Кнопка закрытия для админа -->

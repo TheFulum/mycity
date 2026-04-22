@@ -179,7 +179,7 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Моё местоположение"
+            android:text="Открыть на весь экран"
             android:textColor="@color/accent_blue" />
 
         <!-- Контакты гостя -->

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -305,18 +304,14 @@ public class IssueDetailFragment extends Fragment {
         mapMarker.setPosition(point);
         mapView.invalidate();
 
-        View.OnClickListener openFull = v -> {
+        final double capturedLat = issue.getLat();
+        final double capturedLng = issue.getLng();
+        final String capturedTitle = issue.getTitle() != null ? issue.getTitle() : "";
+        b.btnMapFullscreen.setOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).openMapFullscreen(
-                        issue.getLat(), issue.getLng(),
-                        issue.getTitle() != null ? issue.getTitle() : "");
+                        capturedLat, capturedLng, capturedTitle);
             }
-        };
-        b.mapClickOverlay.setOnClickListener(openFull);
-        b.mapContainer.setOnClickListener(openFull);
-        b.mapView.setOnTouchListener((v, ev) -> {
-            if (ev.getAction() == MotionEvent.ACTION_UP) openFull.onClick(v);
-            return true;
         });
 
         if (issue.isResolved() && (issue.getResolveReport() != null || issue.getResolvedBy() != null)) {
