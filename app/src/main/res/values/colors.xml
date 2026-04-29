@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light palette -->
+    <color name="bg_primary">#F4F6FB</color>
+    <color name="bg_secondary">#FFFFFF</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_circle">#EEF2FF</color>
+    <color name="bg_chip">#EEF2FF</color>
+
+    <!-- Акценты кружочков -->
+    <color name="circle_login">#5B5FBE</color>
+    <color name="circle_register">#C0392B</color>
+    <color name="circle_guest">#27AE60</color>
+    <color name="circle_exit">#A93226</color>
+
+    <!-- Текст -->
+    <color name="text_primary">#101828</color>
+    <color name="text_secondary">#475467</color>
+    <color name="text_hint">#667085</color>
+
+    <!-- UI элементы -->
+    <color name="accent_blue">#5B5FBE</color>
+    <color name="accent_green">#27AE60</color>
+    <color name="accent_red">#C0392B</color>
+    <color name="accent_yellow">#F1C40F</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="divider">#D0D5DD</color>
+    <color name="input_bg">#FFFFFF</color>
+    <color name="input_stroke">#BFC8D8</color>
+
+    <!-- Статусы -->
+    <color name="status_active">#1D8A4A</color>
+    <color name="status_resolved">#667085</color>
+
+    <color name="ripple_light">#1A5B5FBE</color>
+    <color name="shimmer_base">#E8ECF5</color>
+    <color name="shimmer_highlight">#F6F8FC</color>
+
+    <!-- Semantic aliases for drawables/components -->
+    <color name="surface_overlay">#EAF0FF</color>
+    <color name="surface_overlay_stroke">#CDD7F4</color>
+    <color name="surface_muted">#EDF2FA</color>
+    <color name="surface_scrim">#80000000</color>
+    <color name="tab_selected">#DCE4FF</color>
+    <color name="success_surface">#1427AE60</color>
+    <color name="success_stroke">#2E27AE60</color>
+    <color name="splash_grad_start">#EEF3FF</color>
+    <color name="splash_grad_end">#DCE7FF</color>
+    <color name="splash_glow_top">#66CBD8F5</color>
+    <color name="splash_glow_bottom">#335B5FBE</color>
+    <color name="splash_glow_center">#1F7E84FF</color>
+    <color name="splash_label_shadow">#66000000</color>
+    <color name="image_placeholder_start">#E4EAF6</color>
+    <color name="image_placeholder_end">#D5DEEE</color>
+    <color name="gallery_bg">#000000</color>
+    <color name="gallery_scrim">#80000000</color>
+    <color name="gallery_text">#FFFFFF</color>
+</resources>
