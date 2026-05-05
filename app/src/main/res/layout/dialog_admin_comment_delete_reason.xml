@@ -9,7 +9,7 @@
         android:id="@+id/et_reason"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Причина удаления (минимум 20 символов)"
+        android:hint="Причина удаления"
         android:inputType="textMultiLine"
         android:minLines="3" />
 

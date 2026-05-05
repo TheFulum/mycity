@@ -495,7 +495,7 @@ public class CreateIssueFragment extends Fragment {
         String desc = b.etDescription.getText().toString().trim();
 
         boolean ok = true;
-        if (title.length() < 5) { b.tilTitle.setError("Минимум 5 символов"); ok = false; }
+        if (title.isEmpty()) { b.tilTitle.setError(getString(R.string.error_required)); ok = false; }
         else b.tilTitle.setError(null);
         if (desc.isEmpty()) { b.tilDescription.setError(getString(R.string.error_required)); ok = false; }
         else b.tilDescription.setError(null);
@@ -551,6 +551,7 @@ public class CreateIssueFragment extends Fragment {
         issue.setAddress(bestKnownAddress());
         issue.setStatus(Issue.STATUS_ACTIVE);
         issue.setCreatedAt(new Date());
+        issue.setApproved(false);
 
         if (user != null && !isGuest) {
             issue.setAuthorId(user.getUid());

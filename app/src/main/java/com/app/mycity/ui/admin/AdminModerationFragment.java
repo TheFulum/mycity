@@ -14,9 +14,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.app.mycity.data.model.Issue;
 import com.app.mycity.data.repository.IssueRepository;
+import com.app.mycity.data.repository.NotificationRepository;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.FragmentAdminModerationBinding;
 import com.app.mycity.ui.main.MainActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ public class AdminModerationFragment extends Fragment {
     private FragmentAdminModerationBinding b;
     private final IssueRepository issueRepo = new IssueRepository();
     private final UserRepository userRepo = new UserRepository();
+    private final NotificationRepository notifRepo = new NotificationRepository();
     private ListenerRegistration listener;
     private AdminIssueAdapter adapter;
     private List<Issue> allIssues = new ArrayList<>();
@@ -47,15 +51,17 @@ public class AdminModerationFragment extends Fragment {
                     ((MainActivity) getActivity()).openIssueDetail(issue.getId());
                 }
             }
+            @Override public void onApprove(Issue issue) { approve(issue); }
+            @Override public void onReject(Issue issue) { confirmReject(issue); }
             @Override public void onToggleStatus(Issue issue) { toggleStatus(issue); }
-            @Override public void onDelete(Issue issue) { confirmDelete(issue); }
+            @Override public void onDelete(Issue issue) { confirmDeleteApproved(issue); }
         });
         b.rv.setLayoutManager(new LinearLayoutManager(requireContext()));
         b.rv.setItemAnimator(null);
         b.rv.setAdapter(adapter);
 
         listener = issueRepo.listen(IssueRepository.SortField.DATE, false,
-                IssueRepository.StatusFilter.ALL, (list, err) -> {
+                IssueRepository.StatusFilter.ALL, true, (list, err) -> {
                     if (b == null) return;
                     allIssues = list != null ? list : new ArrayList<>();
                     applyFilter();
@@ -88,6 +94,10 @@ public class AdminModerationFragment extends Fragment {
     }
 
     private void toggleStatus(Issue issue) {
+        if (issue != null && !issue.isApproved()) {
+            toast("Сначала одобрите заявку");
+            return;
+        }
         if (issue.isResolved()) {
             issueRepo.setStatus(issue.getId(), Issue.STATUS_ACTIVE)
                     .addOnFailureListener(e -> toast("Ошибка: " + e.getMessage()));
@@ -97,7 +107,81 @@ public class AdminModerationFragment extends Fragment {
         }
     }
 
-    private void confirmDelete(Issue issue) {
+    private void approve(Issue issue) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = user != null ? user.getUid() : null;
+        String name = "Администратор";
+        if (uid == null) { toast("Ошибка авторизации"); return; }
+        userRepo.get(uid).addOnSuccessListener(snap -> {
+            String n = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            String displayName = (n != null && !n.trim().isEmpty()) ? n.trim() : name;
+            issueRepo.approve(issue.getId(), uid, displayName)
+                    .addOnSuccessListener(v -> {
+                        toast("Одобрено");
+                        issue.setApproved(true);
+                        applyFilter();
+                        notifyApproved(issue, displayName, uid);
+                    })
+                    .addOnFailureListener(e -> toast("Ошибка: " + e.getMessage()));
+        }).addOnFailureListener(e -> {
+            issueRepo.approve(issue.getId(), uid, name)
+                    .addOnSuccessListener(v -> {
+                        toast("Одобрено");
+                        issue.setApproved(true);
+                        applyFilter();
+                        notifyApproved(issue, name, uid);
+                    })
+                    .addOnFailureListener(ex -> toast("Ошибка: " + ex.getMessage()));
+        });
+    }
+
+    private void notifyApproved(Issue issue, String adminName, String adminUid) {
+        if (issue == null) return;
+        String authorId = issue.getAuthorId();
+        if (authorId == null || authorId.trim().isEmpty()) return;
+        if (adminUid != null && adminUid.equals(authorId)) return;
+        notifRepo.sendIssueApproved(authorId, issue.getId(), issue.getTitle(), adminName);
+    }
+
+    private void notifyRejected(Issue issue) {
+        if (issue == null) return;
+        String authorId = issue.getAuthorId();
+        if (authorId == null || authorId.trim().isEmpty()) return;
+        FirebaseUser me = FirebaseAuth.getInstance().getCurrentUser();
+        if (me == null) return;
+        String adminUid = me.getUid();
+        if (adminUid != null && adminUid.equals(authorId)) return;
+
+        userRepo.get(adminUid).addOnSuccessListener(snap -> {
+            String n = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            String adminName = (n != null && !n.trim().isEmpty()) ? n.trim() : "Администратор";
+            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), adminName);
+        }).addOnFailureListener(e -> {
+            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), "Администратор");
+        });
+    }
+
+    private void confirmReject(Issue issue) {
+        if (issue == null) return;
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Отклонить заявку?")
+                .setMessage(issue.getTitle())
+                .setPositiveButton("Отклонить", (d, w) ->
+                        issueRepo.delete(issue.getId())
+                                .addOnSuccessListener(v -> {
+                                    if (issue.getAuthorId() != null && !issue.getAuthorId().isEmpty()) {
+                                        userRepo.incrementIssueCount(issue.getAuthorId(), -1);
+                                    }
+                                    notifyRejected(issue);
+                                    toast("Отклонено");
+                                })
+                                .addOnFailureListener(e -> toast("Ошибка: " + e.getMessage())))
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    private void confirmDeleteApproved(Issue issue) {
+        if (issue == null) return;
         new AlertDialog.Builder(requireContext())
                 .setTitle("Удалить заявку?")
                 .setMessage(issue.getTitle())

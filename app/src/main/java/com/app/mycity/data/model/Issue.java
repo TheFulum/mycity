@@ -28,6 +28,10 @@ public class Issue {
     private String address;
     private String status = STATUS_ACTIVE;
     private Date createdAt;
+    private Boolean approved;
+    private Date approvedAt;
+    private String approvedBy;
+    private String approvedByName;
     private Date resolvedAt;
     private String resolvedBy;
     private String resolvedByName;
@@ -72,6 +76,20 @@ public class Issue {
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+
+    @Exclude
+    public boolean isApproved() { return approved == null || approved; }
+    public Boolean getApproved() { return approved; }
+    public void setApproved(Boolean approved) { this.approved = approved; }
+
+    public Date getApprovedAt() { return approvedAt; }
+    public void setApprovedAt(Date approvedAt) { this.approvedAt = approvedAt; }
+
+    public String getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
+
+    public String getApprovedByName() { return approvedByName; }
+    public void setApprovedByName(String approvedByName) { this.approvedByName = approvedByName; }
 
     public Date getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(Date resolvedAt) { this.resolvedAt = resolvedAt; }

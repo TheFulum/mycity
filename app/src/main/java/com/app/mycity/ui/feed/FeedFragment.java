@@ -116,7 +116,7 @@ public class FeedFragment extends Fragment {
 
     private void subscribe() {
         if (listener != null) listener.remove();
-        listener = repo.listen(sortField, sortAsc, statusFilter, (list, err) -> {
+        listener = repo.listenPublic(sortField, sortAsc, statusFilter, (list, err) -> {
             if (b == null) return;
             b.swipeRefresh.setRefreshing(false);
             allIssues.clear();

@@ -35,7 +35,15 @@ public class IssueRepository {
         return ref.set(issue);
     }
 
+    public ListenerRegistration listenPublic(SortField sort, boolean asc, StatusFilter filter, Listener<List<Issue>> listener) {
+        return listen(sort, asc, filter, false, listener);
+    }
+
     public ListenerRegistration listen(SortField sort, boolean asc, StatusFilter filter, Listener<List<Issue>> listener) {
+        return listen(sort, asc, filter, true, listener);
+    }
+
+    public ListenerRegistration listen(SortField sort, boolean asc, StatusFilter filter, boolean includeUnapproved, Listener<List<Issue>> listener) {
         String field = sort == SortField.COMMENTS ? "commentCount" : "createdAt";
         Query q = db.collection(COLLECTION)
                 .orderBy(field, asc ? Query.Direction.ASCENDING : Query.Direction.DESCENDING);
@@ -46,6 +54,11 @@ public class IssueRepository {
                 return;
             }
             List<Issue> list = snap.toObjects(Issue.class);
+            if (!includeUnapproved) {
+                List<Issue> filteredApproved = new ArrayList<>();
+                for (Issue i : list) if (i != null && i.isApproved()) filteredApproved.add(i);
+                list = filteredApproved;
+            }
             if (filter == StatusFilter.ACTIVE || filter == StatusFilter.RESOLVED) {
                 String want = filter == StatusFilter.ACTIVE ? Issue.STATUS_ACTIVE : Issue.STATUS_RESOLVED;
                 List<Issue> filtered = new ArrayList<>();
@@ -110,6 +123,26 @@ public class IssueRepository {
 
     public Task<Void> setStatus(String issueId, String status) {
         return db.collection(COLLECTION).document(issueId).update("status", status);
+    }
+
+    public Task<Void> approve(String issueId, String approvedBy, String approvedByName) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("approved", true);
+        data.put("approvedAt", new java.util.Date());
+        data.put("approvedBy", approvedBy);
+        data.put("approvedByName", approvedByName);
+        return db.collection(COLLECTION).document(issueId).update(data);
+    }
+
+    public Task<Void> setApproved(String issueId, boolean approved) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("approved", approved);
+        if (!approved) {
+            data.put("approvedAt", null);
+            data.put("approvedBy", null);
+            data.put("approvedByName", null);
+        }
+        return db.collection(COLLECTION).document(issueId).update(data);
     }
 
     public Task<Void> resolve(String issueId, String resolvedBy, String resolvedByName,

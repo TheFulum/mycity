@@ -34,6 +34,36 @@ public class NotificationRepository {
                 .addOnFailureListener(e -> Log.e(TAG, "send FAILED for user=" + userId, e));
     }
 
+    public Task<Void> sendIssueApproved(String userId, String issueId, String issueTitle, String adminName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("userId", userId);
+        data.put("issueId", issueId);
+        data.put("issueTitle", issueTitle);
+        String safeTitle = issueTitle != null && !issueTitle.isEmpty() ? issueTitle : "заявку";
+        String safeAdmin = adminName != null && !adminName.isEmpty() ? adminName : "Администратор";
+        data.put("message", "[ОДОБРЕНО] " + safeAdmin + " одобрил(а) вашу заявку «" + safeTitle + "»");
+        data.put("createdAt", new Date());
+        data.put("read", false);
+        return db.collection(COLLECTION).document().set(data)
+                .addOnSuccessListener(v -> Log.d(TAG, "sendIssueApproved OK for user=" + userId + " issue=" + issueId))
+                .addOnFailureListener(e -> Log.e(TAG, "sendIssueApproved FAILED for user=" + userId, e));
+    }
+
+    public Task<Void> sendIssueRejected(String userId, String issueId, String issueTitle, String adminName) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("userId", userId);
+        data.put("issueId", issueId);
+        data.put("issueTitle", issueTitle);
+        String safeTitle = issueTitle != null && !issueTitle.isEmpty() ? issueTitle : "заявку";
+        String safeAdmin = adminName != null && !adminName.isEmpty() ? adminName : "Администратор";
+        data.put("message", "[ОТКЛОНЕНО] " + safeAdmin + " отклонил(а) вашу заявку «" + safeTitle + "»");
+        data.put("createdAt", new Date());
+        data.put("read", false);
+        return db.collection(COLLECTION).document().set(data)
+                .addOnSuccessListener(v -> Log.d(TAG, "sendIssueRejected OK for user=" + userId + " issue=" + issueId))
+                .addOnFailureListener(e -> Log.e(TAG, "sendIssueRejected FAILED for user=" + userId, e));
+    }
+
     public Task<Void> sendCommentModeration(String userId,
                                             String issueId,
                                             String issueTitle,

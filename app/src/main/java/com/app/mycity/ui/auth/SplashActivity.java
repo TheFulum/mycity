@@ -4,12 +4,15 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.content.res.Configuration;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import androidx.appcompat.app.AlertDialog;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +40,16 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivitySplashBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Делаем иконки/текст статус-бара видимыми на светлом фоне.
+        try {
+            WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            getWindow().setStatusBarColor(androidx.core.content.ContextCompat.getColor(this, R.color.splash_grad_start));
+            WindowInsetsControllerCompat c = new WindowInsetsControllerCompat(getWindow(), binding.getRoot());
+            boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                    == Configuration.UI_MODE_NIGHT_YES;
+            c.setAppearanceLightStatusBars(!night);
+        } catch (Throwable ignored) { }
 
         firebaseAuth = FirebaseAuth.getInstance();
 

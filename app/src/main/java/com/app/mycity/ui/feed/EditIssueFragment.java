@@ -178,7 +178,7 @@ public class EditIssueFragment extends Fragment {
         String title = b.etTitle.getText().toString().trim();
         String desc = b.etDescription.getText().toString().trim();
 
-        if (title.length() < 5) { b.tilTitle.setError("Минимум 5 символов"); return; }
+        if (title.isEmpty()) { b.tilTitle.setError("Обязательное поле"); return; }
         b.tilTitle.setError(null);
         if (desc.isEmpty()) { b.tilDescription.setError("Обязательное поле"); return; }
         b.tilDescription.setError(null);
@@ -187,6 +187,7 @@ public class EditIssueFragment extends Fragment {
         setLoading(true);
         currentIssue.setTitle(title);
         currentIssue.setDescription(desc);
+        currentIssue.setApproved(false);
 
         uploadNewPhotos(0, new ArrayList<>(keptUrls));
     }

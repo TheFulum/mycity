@@ -213,8 +213,8 @@ public class IssueDetailFragment extends Fragment {
                         Toast.makeText(requireContext(), "Введите новый текст комментария", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if (reason.length() < 20) {
-                        Toast.makeText(requireContext(), "Причина должна содержать минимум 20 символов", Toast.LENGTH_SHORT).show();
+                    if (reason.isEmpty()) {
+                        Toast.makeText(requireContext(), "Укажите причину", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     comment.setText(newText);
@@ -241,8 +241,8 @@ public class IssueDetailFragment extends Fragment {
                 .setNegativeButton("Отмена", null)
                 .setPositiveButton("Удалить", (d, w) -> {
                     String reason = etReason.getText().toString().trim();
-                    if (reason.length() < 20) {
-                        Toast.makeText(requireContext(), "Причина должна содержать минимум 20 символов", Toast.LENGTH_SHORT).show();
+                    if (reason.isEmpty()) {
+                        Toast.makeText(requireContext(), "Укажите причину", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     commentRepo.delete(issueId, comment.getId(), (ok, err) -> {
@@ -358,10 +358,7 @@ public class IssueDetailFragment extends Fragment {
                 .setView(et)
                 .setPositiveButton("Подтвердить", (d, w) -> {
                     String reason = et.getText().toString().trim();
-                    if (reason.length() < 10) {
-                        Toast.makeText(requireContext(), "Минимум 10 символов", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
+                    if (reason.isEmpty()) { Toast.makeText(requireContext(), "Укажите причину", Toast.LENGTH_SHORT).show(); return; }
                     issue.setDescription(issue.getDescription() + "\n\n— Возобновлено: " + reason);
                     issue.setStatus(Issue.STATUS_ACTIVE);
                     issue.setResolvedAt(null);

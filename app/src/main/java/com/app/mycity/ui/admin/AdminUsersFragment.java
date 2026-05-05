@@ -149,10 +149,7 @@ public class AdminUsersFragment extends Fragment {
                 .setNegativeButton("Отмена", null)
                 .setPositiveButton("Заблокировать", (d, w) -> {
                     String reason = etReason.getText().toString().trim();
-                    if (reason.length() < 20) {
-                        toast("Причина блокировки: минимум 20 символов");
-                        return;
-                    }
+                    if (reason.isEmpty()) { toast("Укажите причину блокировки"); return; }
                     String adminUid = FirebaseAuth.getInstance().getCurrentUser() != null
                             ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                             : null;

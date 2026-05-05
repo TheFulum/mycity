@@ -148,10 +148,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
 
     private void submit() {
         String report = b.etReport.getText() != null ? b.etReport.getText().toString().trim() : "";
-        if (report.length() < 20) {
-            b.tilReport.setError("Минимум 20 символов");
-            return;
-        }
+        if (report.isEmpty()) { b.tilReport.setError("Обязательное поле"); return; }
         b.tilReport.setError(null);
         if (photoUris.isEmpty()) {
             toast("Добавьте хотя бы одно фото");

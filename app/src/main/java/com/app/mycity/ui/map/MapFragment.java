@@ -85,7 +85,7 @@ public class MapFragment extends Fragment {
 
     private void subscribe() {
         if (listener != null) listener.remove();
-        listener = repo.listen(IssueRepository.SortField.DATE, false,
+        listener = repo.listenPublic(IssueRepository.SortField.DATE, false,
                 IssueRepository.StatusFilter.ALL, (list, err) -> {
                     if (b == null) return;
                     currentIssues.clear();

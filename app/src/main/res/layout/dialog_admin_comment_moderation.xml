@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="Причина изменения (минимум 20 символов)"
+        android:hint="Причина изменения"
         android:inputType="textMultiLine"
         android:minLines="2" />
 

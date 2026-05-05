@@ -33,6 +33,7 @@
 
         <activity
             android:name="com.app.mycity.ui.auth.SplashActivity"
+            android:theme="@style/Theme.MyCity.Splash"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
