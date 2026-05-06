@@ -34,6 +34,7 @@ public class SplashActivity extends AppCompatActivity {
     private final float[] centerY = new float[4];
     private static final float CAPTURE_RADIUS_DP = 72f;
     private int capturedIndex = -1;
+    private boolean lastNight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class SplashActivity extends AppCompatActivity {
             WindowInsetsControllerCompat c = new WindowInsetsControllerCompat(getWindow(), binding.getRoot());
             boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                     == Configuration.UI_MODE_NIGHT_YES;
+            lastNight = night;
             c.setAppearanceLightStatusBars(!night);
         } catch (Throwable ignored) { }
 
@@ -61,6 +63,18 @@ public class SplashActivity extends AppCompatActivity {
         setupCircleAppearance();
         setupCircles();
         playEntranceAnimation();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Если тема системы поменялась (MODE_FOLLOW_SYSTEM) — пересоздаём экран,
+        // чтобы корректно применились resources из values-night.
+        boolean night = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        if (night != lastNight) {
+            recreate();
+        }
     }
 
     /** Выставляем цвет фона, иконку и подпись каждого кружка */

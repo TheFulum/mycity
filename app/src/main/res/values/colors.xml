@@ -31,6 +31,7 @@
     <!-- Статусы -->
     <color name="status_active">#1D8A4A</color>
     <color name="status_resolved">#667085</color>
+    <color name="status_rejected">#C0392B</color>
 
     <color name="ripple_light">#1A5B5FBE</color>
     <color name="shimmer_base">#E8ECF5</color>

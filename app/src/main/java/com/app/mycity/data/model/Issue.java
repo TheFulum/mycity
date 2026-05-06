@@ -13,6 +13,7 @@ public class Issue {
 
     public static final String STATUS_ACTIVE = "ACTIVE";
     public static final String STATUS_RESOLVED = "RESOLVED";
+    public static final String STATUS_REJECTED = "REJECTED";
 
     @DocumentId
     private String id;
@@ -32,6 +33,10 @@ public class Issue {
     private Date approvedAt;
     private String approvedBy;
     private String approvedByName;
+    private Date rejectedAt;
+    private String rejectedBy;
+    private String rejectedByName;
+    private String rejectedReason;
     private Date resolvedAt;
     private String resolvedBy;
     private String resolvedByName;
@@ -91,6 +96,18 @@ public class Issue {
     public String getApprovedByName() { return approvedByName; }
     public void setApprovedByName(String approvedByName) { this.approvedByName = approvedByName; }
 
+    public Date getRejectedAt() { return rejectedAt; }
+    public void setRejectedAt(Date rejectedAt) { this.rejectedAt = rejectedAt; }
+
+    public String getRejectedBy() { return rejectedBy; }
+    public void setRejectedBy(String rejectedBy) { this.rejectedBy = rejectedBy; }
+
+    public String getRejectedByName() { return rejectedByName; }
+    public void setRejectedByName(String rejectedByName) { this.rejectedByName = rejectedByName; }
+
+    public String getRejectedReason() { return rejectedReason; }
+    public void setRejectedReason(String rejectedReason) { this.rejectedReason = rejectedReason; }
+
     public Date getResolvedAt() { return resolvedAt; }
     public void setResolvedAt(Date resolvedAt) { this.resolvedAt = resolvedAt; }
 
@@ -111,4 +128,7 @@ public class Issue {
 
     @Exclude
     public boolean isResolved() { return STATUS_RESOLVED.equals(status); }
+
+    @Exclude
+    public boolean isRejected() { return STATUS_REJECTED.equals(status); }
 }

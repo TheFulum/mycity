@@ -143,7 +143,7 @@ public class AdminModerationFragment extends Fragment {
         notifRepo.sendIssueApproved(authorId, issue.getId(), issue.getTitle(), adminName);
     }
 
-    private void notifyRejected(Issue issue) {
+    private void notifyRejected(Issue issue, String reason) {
         if (issue == null) return;
         String authorId = issue.getAuthorId();
         if (authorId == null || authorId.trim().isEmpty()) return;
@@ -155,29 +155,61 @@ public class AdminModerationFragment extends Fragment {
         userRepo.get(adminUid).addOnSuccessListener(snap -> {
             String n = snap != null && snap.exists() ? snap.getString("displayName") : null;
             String adminName = (n != null && !n.trim().isEmpty()) ? n.trim() : "Администратор";
-            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), adminName);
+            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), adminName, reason);
         }).addOnFailureListener(e -> {
-            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), "Администратор");
+            notifRepo.sendIssueRejected(authorId, issue.getId(), issue.getTitle(), "Администратор", reason);
         });
     }
 
     private void confirmReject(Issue issue) {
         if (issue == null) return;
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Отклонить заявку?")
+        android.widget.EditText et = new android.widget.EditText(requireContext());
+        et.setHint("Причина отклонения");
+        int pad = (int) (16 * getResources().getDisplayMetrics().density);
+        et.setPadding(pad, pad, pad, pad);
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(issue.isApproved() ? "Аннулировать заявку?" : "Отклонить заявку?")
                 .setMessage(issue.getTitle())
-                .setPositiveButton("Отклонить", (d, w) ->
-                        issueRepo.delete(issue.getId())
-                                .addOnSuccessListener(v -> {
-                                    if (issue.getAuthorId() != null && !issue.getAuthorId().isEmpty()) {
-                                        userRepo.incrementIssueCount(issue.getAuthorId(), -1);
-                                    }
-                                    notifyRejected(issue);
-                                    toast("Отклонено");
-                                })
-                                .addOnFailureListener(e -> toast("Ошибка: " + e.getMessage())))
+                .setView(et)
+                .setPositiveButton(issue.isApproved() ? "Аннулировать" : "Отклонить", (d, w) -> {
+                    String reason = et.getText() != null ? et.getText().toString().trim() : "";
+                    if (reason.isEmpty()) { toast("Укажите причину"); return; }
+                    rejectIssue(issue, reason);
+                })
                 .setNegativeButton("Отмена", null)
                 .show();
+    }
+
+    private void rejectIssue(Issue issue, String reason) {
+        FirebaseUser me = FirebaseAuth.getInstance().getCurrentUser();
+        if (me == null) { toast("Ошибка авторизации"); return; }
+        String adminUid = me.getUid();
+        userRepo.get(adminUid).addOnSuccessListener(snap -> {
+            String n = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            String adminName = (n != null && !n.trim().isEmpty()) ? n.trim() : "Администратор";
+            issueRepo.reject(issue.getId(), adminUid, adminName, reason, true)
+                    .addOnSuccessListener(v -> {
+                        issue.setStatus(Issue.STATUS_REJECTED);
+                        issue.setRejectedReason(reason);
+                        issue.setApproved(false);
+                        applyFilter();
+                        notifyRejected(issue, reason);
+                        toast("Отклонено");
+                    })
+                    .addOnFailureListener(e -> toast("Ошибка: " + e.getMessage()));
+        }).addOnFailureListener(e -> {
+            issueRepo.reject(issue.getId(), adminUid, "Администратор", reason, true)
+                    .addOnSuccessListener(v -> {
+                        issue.setStatus(Issue.STATUS_REJECTED);
+                        issue.setRejectedReason(reason);
+                        issue.setApproved(false);
+                        applyFilter();
+                        notifyRejected(issue, reason);
+                        toast("Отклонено");
+                    })
+                    .addOnFailureListener(ex -> toast("Ошибка: " + ex.getMessage()));
+        });
     }
 
     private void confirmDeleteApproved(Issue issue) {

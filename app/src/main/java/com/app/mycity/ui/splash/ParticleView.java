@@ -27,12 +27,12 @@ public class ParticleView extends View {
 
     // Цвета кружков (соответствуют акцентам приложения)
     private final int[] COLORS = {
-            0x125B5FBE, // синий
-            0x12C0392B, // красный
-            0x1227AE60, // зелёный
-            0x0E9E9E9E, // серый
-            0x145B5FBE,
-            0x14C0392B,
+            0x4A5B5FBE, // синий (ещё ярче)
+            0x4AC0392B, // красный (ещё ярче)
+            0x4A27AE60, // зелёный (ещё ярче)
+            0x3A9E9E9E, // серый (ещё ярче)
+            0x5A5B5FBE,
+            0x5AC0392B,
     };
 
     private final Runnable frameRunnable = new Runnable() {
@@ -71,7 +71,8 @@ public class ParticleView extends View {
         Particle p = new Particle();
         p.x = rnd.nextFloat() * w;
         p.y = randomY ? rnd.nextFloat() * h : h + 60;
-        p.radius = 8 + rnd.nextFloat() * 28;
+        // Крупнее, чтобы читалось на фоне
+        p.radius = 28 + rnd.nextFloat() * 88;
         p.speedY = -(0.55f + rnd.nextFloat() * 1.3f);
         p.speedX = (rnd.nextFloat() - 0.5f) * 0.65f;
         p.color = COLORS[rnd.nextInt(COLORS.length)];

@@ -56,7 +56,7 @@ public class IssueRepository {
             List<Issue> list = snap.toObjects(Issue.class);
             if (!includeUnapproved) {
                 List<Issue> filteredApproved = new ArrayList<>();
-                for (Issue i : list) if (i != null && i.isApproved()) filteredApproved.add(i);
+                for (Issue i : list) if (i != null && i.isApproved() && !i.isRejected()) filteredApproved.add(i);
                 list = filteredApproved;
             }
             if (filter == StatusFilter.ACTIVE || filter == StatusFilter.RESOLVED) {
@@ -142,6 +142,30 @@ public class IssueRepository {
             data.put("approvedBy", null);
             data.put("approvedByName", null);
         }
+        return db.collection(COLLECTION).document(issueId).update(data);
+    }
+
+    public Task<Void> reject(String issueId,
+                             String rejectedBy,
+                             String rejectedByName,
+                             String reason,
+                             boolean keepDocument) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("status", Issue.STATUS_REJECTED);
+        data.put("rejectedAt", new java.util.Date());
+        data.put("rejectedBy", rejectedBy);
+        data.put("rejectedByName", rejectedByName);
+        data.put("rejectedReason", reason);
+        // После отклонения не публикуем в общий доступ
+        data.put("approved", false);
+        data.put("approvedAt", null);
+        data.put("approvedBy", null);
+        data.put("approvedByName", null);
+
+        if (keepDocument) {
+            return db.collection(COLLECTION).document(issueId).update(data);
+        }
+        // fallback: just in case
         return db.collection(COLLECTION).document(issueId).update(data);
     }
 

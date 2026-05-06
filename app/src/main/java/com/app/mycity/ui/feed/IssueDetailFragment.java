@@ -176,13 +176,7 @@ public class IssueDetailFragment extends Fragment {
 
             @Override
             public void onReply(Comment c) {
-                replyingToComment = c;
-                editingComment = null;
-                b.commentRating.setRating(5);
-                b.etComment.requestFocus();
-                Toast.makeText(requireContext(),
-                        "Ответ на комментарий: " + (c.getAuthorName() != null ? c.getAuthorName() : "пользователь"),
-                        Toast.LENGTH_SHORT).show();
+                if (commentAdapter != null) commentAdapter.openInlineReply(c);
             }
 
             @Override
@@ -192,7 +186,49 @@ public class IssueDetailFragment extends Fragment {
                     b.rvComments.scrollToPosition(pos);
                 }
             }
+
+            @Override
+            public void onSendInlineReply(Comment parent, String text) {
+                sendInlineReply(parent, text);
+            }
         };
+    }
+
+    private void sendInlineReply(Comment parent, String text) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        if (parent == null || parent.getId() == null) return;
+        String trimmed = text != null ? text.trim() : "";
+        if (trimmed.isEmpty()) return;
+
+        userRepo.get(user.getUid()).addOnSuccessListener(snap -> {
+            UserProfile profile = snap != null && snap.exists() ? snap.toObject(UserProfile.class) : null;
+            if (profile != null && profile.isBlockedNow()) {
+                String reason = profile.getBlockedReason() != null ? profile.getBlockedReason() : "без причины";
+                showBlockedActionDialog("писать комментарии", reason);
+                return;
+            }
+            String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            if (name == null || name.isEmpty()) {
+                name = user.getDisplayName() != null ? user.getDisplayName()
+                        : (user.getEmail() != null ? user.getEmail() : "Пользователь");
+            }
+            String role = snap != null && snap.exists() ? snap.getString("role") : null;
+
+            Comment c = new Comment();
+            c.setAuthorId(user.getUid());
+            c.setAuthorName(name);
+            c.setAuthorRole(role);
+            c.setRating(0);
+            c.setText(trimmed);
+            c.setParentCommentId(parent.getId());
+
+            commentRepo.upsert(issueId, c, (ok, err) -> {
+                if (!ok && getContext() != null) {
+                    Toast.makeText(requireContext(), "Ошибка отправки ответа", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     private void showAdminEditCommentDialog(Comment comment) {

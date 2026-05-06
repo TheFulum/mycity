@@ -60,6 +60,7 @@
             android:textSize="11sp" />
 
         <LinearLayout
+            android:id="@+id/row_primary_actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -82,7 +83,6 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Отклонить"
                 android:textColor="@color/accent_red"
@@ -91,22 +91,22 @@
                 app:strokeWidth="1dp" />
 
             <Button
-                android:id="@+id/btn_toggle"
+                android:id="@+id/btn_annul"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Закрыть как выполненное"
-                android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:text="Аннулировать"
+                android:textColor="@color/accent_red"
+                android:textSize="12sp"
+                app:strokeColor="@color/accent_red"
+                app:strokeWidth="1dp" />
 
             <Button
                 android:id="@+id/btn_delete"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Удалить"
                 android:textColor="@color/accent_red"
@@ -114,5 +114,15 @@
                 app:strokeColor="@color/accent_red"
                 app:strokeWidth="1dp" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_toggle"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Закрыть как выполненное"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

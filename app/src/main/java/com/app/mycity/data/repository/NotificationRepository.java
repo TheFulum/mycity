@@ -49,14 +49,15 @@ public class NotificationRepository {
                 .addOnFailureListener(e -> Log.e(TAG, "sendIssueApproved FAILED for user=" + userId, e));
     }
 
-    public Task<Void> sendIssueRejected(String userId, String issueId, String issueTitle, String adminName) {
+    public Task<Void> sendIssueRejected(String userId, String issueId, String issueTitle, String adminName, String reason) {
         Map<String, Object> data = new HashMap<>();
         data.put("userId", userId);
         data.put("issueId", issueId);
         data.put("issueTitle", issueTitle);
         String safeTitle = issueTitle != null && !issueTitle.isEmpty() ? issueTitle : "заявку";
         String safeAdmin = adminName != null && !adminName.isEmpty() ? adminName : "Администратор";
-        data.put("message", "[ОТКЛОНЕНО] " + safeAdmin + " отклонил(а) вашу заявку «" + safeTitle + "»");
+        String safeReason = reason != null && !reason.trim().isEmpty() ? reason.trim() : "без указания причины";
+        data.put("message", "[ОТКЛОНЕНО] " + safeAdmin + " отклонил(а) вашу заявку «" + safeTitle + "». Причина: " + safeReason);
         data.put("createdAt", new Date());
         data.put("read", false);
         return db.collection(COLLECTION).document().set(data)

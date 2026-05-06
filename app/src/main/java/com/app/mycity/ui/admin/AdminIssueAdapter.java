@@ -45,7 +45,8 @@ public class AdminIssueAdapter extends RecyclerView.Adapter<AdminIssueAdapter.VH
                 Issue a = items.get(o), b = newList.get(n);
                 return equals(a.getStatus(), b.getStatus())
                         && equals(a.getTitle(), b.getTitle())
-                        && a.isApproved() == b.isApproved();
+                        && a.isApproved() == b.isApproved()
+                        && equals(a.getRejectedReason(), b.getRejectedReason());
             }
             private boolean equals(String a, String b) {
                 return a == null ? b == null : a.equals(b);
@@ -84,14 +85,19 @@ public class AdminIssueAdapter extends RecyclerView.Adapter<AdminIssueAdapter.VH
             b.tvAuthor.setText("Автор: " + author);
             b.tvDate.setText(DateUtils.format(issue.getCreatedAt()));
             boolean approved = issue.isApproved();
-            b.btnApprove.setVisibility(approved ? android.view.View.GONE : android.view.View.VISIBLE);
-            b.btnReject.setVisibility(approved ? android.view.View.GONE : android.view.View.VISIBLE);
-            b.btnToggle.setVisibility(approved ? android.view.View.VISIBLE : android.view.View.GONE);
-            b.btnDelete.setVisibility(approved ? android.view.View.VISIBLE : android.view.View.GONE);
+            boolean rejected = issue.isRejected();
+            b.btnApprove.setVisibility(!approved && !rejected ? android.view.View.VISIBLE : android.view.View.GONE);
+            b.btnReject.setVisibility(!approved && !rejected ? android.view.View.VISIBLE : android.view.View.GONE);
+            b.btnAnnul.setVisibility(approved && !rejected ? android.view.View.VISIBLE : android.view.View.GONE);
+            b.btnToggle.setVisibility(approved && !rejected ? android.view.View.VISIBLE : android.view.View.GONE);
+            b.btnDelete.setVisibility(approved || rejected ? android.view.View.VISIBLE : android.view.View.GONE);
 
-            updateToggleStartMargin(approved);
+            applyButtonRowSpacing();
 
-            if (!approved) {
+            if (rejected) {
+                b.tvStatus.setText("Отклонена");
+                b.tvStatus.setBackgroundResource(R.drawable.bg_status_rejected);
+            } else if (!approved) {
                 b.tvStatus.setText("На модерации");
                 b.tvStatus.setBackgroundResource(R.drawable.bg_status_active);
             } else if (issue.isResolved()) {
@@ -106,17 +112,27 @@ public class AdminIssueAdapter extends RecyclerView.Adapter<AdminIssueAdapter.VH
             b.getRoot().setOnClickListener(v -> actions.onOpen(issue));
             b.btnApprove.setOnClickListener(v -> actions.onApprove(issue));
             b.btnReject.setOnClickListener(v -> actions.onReject(issue));
+            b.btnAnnul.setOnClickListener(v -> actions.onReject(issue));
             b.btnToggle.setOnClickListener(v -> actions.onToggleStatus(issue));
             b.btnDelete.setOnClickListener(v -> actions.onDelete(issue));
         }
 
-        private void updateToggleStartMargin(boolean approved) {
-            android.view.ViewGroup.LayoutParams lp = b.btnToggle.getLayoutParams();
-            if (!(lp instanceof android.view.ViewGroup.MarginLayoutParams)) return;
-            android.view.ViewGroup.MarginLayoutParams mlp = (android.view.ViewGroup.MarginLayoutParams) lp;
+        private void applyButtonRowSpacing() {
+            android.view.View[] views = new android.view.View[]{
+                    b.btnApprove, b.btnReject, b.btnAnnul, b.btnDelete
+            };
             int px8 = (int) (8 * b.btnToggle.getResources().getDisplayMetrics().density);
-            mlp.leftMargin = 0;
-            b.btnToggle.setLayoutParams(mlp);
+            boolean firstVisible = true;
+            for (android.view.View v : views) {
+                if (v.getVisibility() != android.view.View.VISIBLE) continue;
+                android.view.ViewGroup.LayoutParams lp = v.getLayoutParams();
+                if (lp instanceof android.view.ViewGroup.MarginLayoutParams) {
+                    android.view.ViewGroup.MarginLayoutParams mlp = (android.view.ViewGroup.MarginLayoutParams) lp;
+                    mlp.leftMargin = firstVisible ? 0 : px8;
+                    v.setLayoutParams(mlp);
+                }
+                firstVisible = false;
+            }
         }
     }
 }

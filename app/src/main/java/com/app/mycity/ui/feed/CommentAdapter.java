@@ -25,6 +25,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
         void onEdit(Comment c);
         void onDelete(Comment c);
         void onReply(Comment c);
+        void onSendInlineReply(Comment parent, String text);
         void onGoToComment(String commentId);
     }
     public interface OnAuthorClick { void onClick(String authorId); }
@@ -35,6 +36,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
     private final boolean isAdmin;
     private final Callbacks callbacks;
     private OnAuthorClick onAuthorClick;
+    private String replyingToId;
 
     public CommentAdapter(String myUid, boolean isAdmin, Callbacks callbacks) {
         this.myUid = myUid;
@@ -43,6 +45,20 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
     }
 
     public void setOnAuthorClick(OnAuthorClick cb) { this.onAuthorClick = cb; }
+
+    public void openInlineReply(Comment c) {
+        if (c == null || c.getId() == null) return;
+        String prev = replyingToId;
+        replyingToId = c.getId();
+        if (prev != null) notifyItemChanged(findPositionById(prev));
+        notifyItemChanged(findPositionById(replyingToId));
+    }
+
+    public void closeInlineReply() {
+        String prev = replyingToId;
+        replyingToId = null;
+        if (prev != null) notifyItemChanged(findPositionById(prev));
+    }
 
     public void submit(List<Comment> newList) {
         byId.clear();
@@ -63,10 +79,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
                 return a.depth == b.depth
                         && a.comment.getRating() == b.comment.getRating()
                         && equals(a.comment.getText(), b.comment.getText())
-                        && equals(a.comment.getParentCommentId(), b.comment.getParentCommentId());
+                        && equals(a.comment.getParentCommentId(), b.comment.getParentCommentId())
+                        && isReplyingTo(a.comment) == isReplyingTo(b.comment);
             }
             private boolean equals(String a, String b) {
                 return a == null ? b == null : a.equals(b);
+            }
+            private boolean isReplyingTo(Comment c) {
+                return c != null && c.getId() != null && c.getId().equals(replyingToId);
             }
         });
         items = flattened;
@@ -143,6 +163,8 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
             b.tvText.setText(c.getText());
             b.tvDate.setText(DateUtils.format(c.getCreatedAt()));
             b.rating.setRating(c.getRating());
+            boolean isReply = c.getParentCommentId() != null && !c.getParentCommentId().isEmpty();
+            b.rating.setVisibility(isReply ? View.GONE : View.VISIBLE);
 
             int base = (int) (12 * itemView.getResources().getDisplayMetrics().density);
             int indent = (int) (12 * itemView.getResources().getDisplayMetrics().density) * Math.min(row.depth, 6);
@@ -180,6 +202,25 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
             } else {
                 b.layoutReplyTo.setVisibility(View.GONE);
                 b.layoutReplyTo.setOnClickListener(null);
+            }
+
+            boolean showInline = c.getId() != null && c.getId().equals(replyingToId);
+            b.layoutInlineReply.setVisibility(showInline ? View.VISIBLE : View.GONE);
+            if (showInline) {
+                b.etInlineReply.requestFocus();
+                b.btnInlineCancel.setOnClickListener(v -> closeInlineReply());
+                b.btnInlineSend.setOnClickListener(v -> {
+                    String text = b.etInlineReply.getText() != null ? b.etInlineReply.getText().toString().trim() : "";
+                    if (text.isEmpty()) return;
+                    b.btnInlineSend.setEnabled(false);
+                    if (callbacks != null) callbacks.onSendInlineReply(c, text);
+                    b.btnInlineSend.setEnabled(true);
+                    b.etInlineReply.setText("");
+                    closeInlineReply();
+                });
+            } else {
+                b.btnInlineSend.setOnClickListener(null);
+                b.btnInlineCancel.setOnClickListener(null);
             }
         }
 
