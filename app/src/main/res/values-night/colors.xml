@@ -50,6 +50,7 @@
     <color name="splash_glow_bottom">#263D5AFE</color>
     <color name="splash_glow_center">#141A237E</color>
     <color name="splash_label_shadow">#99000000</color>
+    <color name="splash_hero_panel">#D92A2F3D</color>
     <color name="image_placeholder_start">#1A2234</color>
     <color name="image_placeholder_end">#2A3448</color>
     <color name="gallery_bg">#000000</color>

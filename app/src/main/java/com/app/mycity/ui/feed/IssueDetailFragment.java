@@ -455,10 +455,13 @@ public class IssueDetailFragment extends Fragment {
         if (mapMarker == null) {
             mapMarker = new Marker(mapView);
             mapMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            mapMarker.setIcon(androidx.core.content.ContextCompat.getDrawable(
-                    requireContext(), R.drawable.ic_marker));
             mapMarker.setInfoWindow(null);
             mapView.getOverlays().add(mapMarker);
+        }
+        mapMarker.setIcon(androidx.core.content.ContextCompat.getDrawable(
+                requireContext(), issue.isResolved() ? R.drawable.ic_marker_red : R.drawable.ic_marker));
+        if (mapMarker.getIcon() == null) {
+            mapMarker.setIcon(androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker));
         }
         mapMarker.setPosition(point);
         mapView.invalidate();

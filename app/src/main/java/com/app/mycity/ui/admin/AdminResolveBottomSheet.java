@@ -76,6 +76,26 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
         b.btnCancel.setOnClickListener(v -> dismiss());
         b.btnResolve.setOnClickListener(v -> submit());
+
+        prefillExecutor();
+    }
+
+    private void prefillExecutor() {
+        if (b == null) return;
+        CharSequence existing = b.etExecutor.getText();
+        if (existing != null && existing.toString().trim().length() > 0) return;
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String uid = user.getUid();
+        userRepo.get(uid).addOnSuccessListener(snap -> {
+            if (b == null) return;
+            String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            b.etExecutor.setText(resolveAdminName(name, user));
+        }).addOnFailureListener(e -> {
+            if (b == null) return;
+            b.etExecutor.setText(resolveAdminName(null, user));
+        });
     }
 
     private void registerLaunchers() {
@@ -150,6 +170,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         String report = b.etReport.getText() != null ? b.etReport.getText().toString().trim() : "";
         if (report.isEmpty()) { b.tilReport.setError("Обязательное поле"); return; }
         b.tilReport.setError(null);
+        String executor = b.etExecutor.getText() != null ? b.etExecutor.getText().toString().trim() : "";
         if (photoUris.isEmpty()) {
             toast("Добавьте хотя бы одно фото");
             return;
@@ -164,9 +185,15 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         setLoading(true);
         userRepo.get(uid).addOnSuccessListener(snap -> {
             String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
-            uploadPhotos(issueId, uid, resolveAdminName(name, user), report, 0, new ArrayList<>());
+            String fallback = resolveAdminName(name, user);
+            String finalExecutor = executor != null && !executor.isEmpty() ? executor : fallback;
+            if (b != null) b.etExecutor.setText(finalExecutor);
+            uploadPhotos(issueId, uid, finalExecutor, report, 0, new ArrayList<>());
         }).addOnFailureListener(e -> {
-            uploadPhotos(issueId, uid, resolveAdminName(null, user), report, 0, new ArrayList<>());
+            String fallback = resolveAdminName(null, user);
+            String finalExecutor = executor != null && !executor.isEmpty() ? executor : fallback;
+            if (b != null) b.etExecutor.setText(finalExecutor);
+            uploadPhotos(issueId, uid, finalExecutor, report, 0, new ArrayList<>());
         });
     }
 

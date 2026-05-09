@@ -51,6 +51,8 @@
     <color name="splash_glow_bottom">#335B5FBE</color>
     <color name="splash_glow_center">#1F7E84FF</color>
     <color name="splash_label_shadow">#66000000</color>
+    <!-- Подложка блока-героя на splash (~85% непрозрачности) -->
+    <color name="splash_hero_panel">#D9FFFFFF</color>
     <color name="image_placeholder_start">#E4EAF6</color>
     <color name="image_placeholder_end">#D5DEEE</color>
     <color name="gallery_bg">#000000</color>

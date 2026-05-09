@@ -50,20 +50,28 @@
                 android:letterSpacing="0.03" />
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/ivHero"
+        <FrameLayout
+            android:id="@+id/heroCard"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginTop="16dp"
             android:layout_marginStart="18dp"
             android:layout_marginEnd="18dp"
-            android:background="@drawable/bg_splash_hero"
-            android:contentDescription="@null"
-            android:scaleType="centerCrop"
+            android:background="@drawable/bg_splash_hero_panel"
+            android:clipToOutline="true"
             app:layout_constraintTop_toBottomOf="@id/logoBlock"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_percent="0.24" />
+            app:layout_constraintHeight_percent="0.24">
+
+            <ImageView
+                android:id="@+id/ivHero"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@null"
+                android:scaleType="fitXY"
+                android:src="@drawable/splash_hero_city" />
+        </FrameLayout>
 
         <!--
             ВХОД
@@ -73,7 +81,7 @@
             layout="@layout/view_circle_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintWidth_percent="0.28"
+            app:layout_constraintWidth_percent="0.29"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -107,7 +115,7 @@
             layout="@layout/view_circle_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintWidth_percent="0.27"
+            app:layout_constraintWidth_percent="0.29"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -124,7 +132,7 @@
             layout="@layout/view_circle_button"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintWidth_percent="0.23"
+            app:layout_constraintWidth_percent="0.29"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

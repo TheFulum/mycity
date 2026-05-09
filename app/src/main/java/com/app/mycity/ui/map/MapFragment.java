@@ -96,12 +96,11 @@ public class MapFragment extends Fragment {
 
     private void renderMarkers(List<Issue> issues) {
         b.map.getOverlays().clear();
-        Drawable icon = tintedMarker();
         for (Issue issue : issues) {
             Marker marker = new Marker(b.map);
             marker.setPosition(new GeoPoint(issue.getLat(), issue.getLng()));
             marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-            marker.setIcon(icon);
+            marker.setIcon(markerIcon(issue));
             marker.setTitle(issue.getTitle());
             marker.setOnMarkerClickListener((m, mapView) -> {
                 showPopup(issue);
@@ -169,8 +168,12 @@ public class MapFragment extends Fragment {
         b.map.zoomToBoundingBox(box, true, 120);
     }
 
-    private Drawable tintedMarker() {
-        Drawable d = ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker);
+    private Drawable markerIcon(Issue issue) {
+        int res = (issue != null && issue.isResolved()) ? R.drawable.ic_marker_red : R.drawable.ic_marker;
+        Drawable d = ContextCompat.getDrawable(requireContext(), res);
+        if (d == null) {
+            d = ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker);
+        }
         if (d != null) {
             d = DrawableCompat.wrap(d.mutate());
         }
@@ -180,7 +183,7 @@ public class MapFragment extends Fragment {
     private void showPopup(Issue issue) {
         b.popup.setVisibility(View.VISIBLE);
         b.popupTitle.setText(issue.getTitle());
-        b.popupAddress.setText(com.app.mycity.util.GeoUtils.displayAddress(issue.getAddress()));
+        b.popupAddress.setText(GeoUtils.displayAddress(issue.getAddress()));
         b.popupDescription.setText(issue.getDescription());
         if (issue.getPhotoUrls() != null && !issue.getPhotoUrls().isEmpty()) {
             b.popupImage.setVisibility(View.VISIBLE);

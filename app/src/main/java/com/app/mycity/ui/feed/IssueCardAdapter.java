@@ -59,6 +59,7 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
                 Issue a = items.get(o), b = newList.get(n);
                 return equals(a.getTitle(), b.getTitle())
                         && equals(a.getStatus(), b.getStatus())
+                        && equals(a.getResolvedByName(), b.getResolvedByName())
                         && a.getCommentCount() == b.getCommentCount();
             }
             private boolean equals(String a, String b) {
@@ -119,6 +120,13 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
             } else {
                 b.tvStatus.setText(R.string.status_active);
                 b.tvStatus.setBackgroundResource(R.drawable.bg_status_active);
+            }
+
+            if (issue.isResolved() && issue.getResolvedByName() != null && !issue.getResolvedByName().trim().isEmpty()) {
+                b.tvResolvedBy.setVisibility(View.VISIBLE);
+                b.tvResolvedBy.setText("Исполнитель: " + issue.getResolvedByName().trim());
+            } else {
+                b.tvResolvedBy.setVisibility(View.GONE);
             }
 
             if (issue.getPhotoUrls() != null && !issue.getPhotoUrls().isEmpty()) {
