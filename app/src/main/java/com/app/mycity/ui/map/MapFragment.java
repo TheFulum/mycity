@@ -25,10 +25,12 @@ import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.GeoUtils;
 import com.bumptech.glide.Glide;
 
+import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
+import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -96,6 +98,21 @@ public class MapFragment extends Fragment {
 
     private void renderMarkers(List<Issue> issues) {
         b.map.getOverlays().clear();
+        MapEventsOverlay tapDismiss = new MapEventsOverlay(new MapEventsReceiver() {
+            @Override
+            public boolean singleTapConfirmedHelper(GeoPoint p) {
+                if (b != null && b.popup.getVisibility() == View.VISIBLE) {
+                    b.popup.setVisibility(View.GONE);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean longPressHelper(GeoPoint p) {
+                return false;
+            }
+        });
+        b.map.getOverlays().add(0, tapDismiss);
         for (Issue issue : issues) {
             Marker marker = new Marker(b.map);
             marker.setPosition(new GeoPoint(issue.getLat(), issue.getLng()));

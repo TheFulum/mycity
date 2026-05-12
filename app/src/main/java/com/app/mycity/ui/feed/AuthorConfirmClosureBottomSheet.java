@@ -1,4 +1,4 @@
-package com.app.mycity.ui.admin;
+package com.app.mycity.ui.feed;
 
 import android.Manifest;
 import android.content.Intent;
@@ -18,63 +18,60 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.app.mycity.R;
+import com.app.mycity.data.model.Issue;
 import com.app.mycity.data.repository.IssueRepository;
-import com.app.mycity.data.repository.NotificationRepository;
-import com.app.mycity.databinding.BottomSheetAdminResolveBinding;
+import com.app.mycity.databinding.BottomSheetAuthorConfirmClosureBinding;
 import com.app.mycity.databinding.ItemCreatePhotoBinding;
 import com.app.mycity.util.CloudinaryManager;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
+public class AuthorConfirmClosureBottomSheet extends BottomSheetDialogFragment {
 
     private static final String ARG_ISSUE_ID = "issue_id";
     private static final int MAX_PHOTOS = 5;
 
-    public interface OnResolvedListener { void onResolved(); }
+    public interface OnConfirmedListener { void onConfirmed(); }
 
-    public static AdminResolveBottomSheet newInstance(String issueId) {
-        AdminResolveBottomSheet bs = new AdminResolveBottomSheet();
+    public static AuthorConfirmClosureBottomSheet newInstance(String issueId) {
+        AuthorConfirmClosureBottomSheet bs = new AuthorConfirmClosureBottomSheet();
         Bundle args = new Bundle();
         args.putString(ARG_ISSUE_ID, issueId);
         bs.setArguments(args);
         return bs;
     }
 
-    private BottomSheetAdminResolveBinding b;
+    private BottomSheetAuthorConfirmClosureBinding b;
     private final IssueRepository issueRepo = new IssueRepository();
-    private final NotificationRepository notifRepo = new NotificationRepository();
     private final List<Uri> photoUris = new ArrayList<>();
     private Uri cameraUri;
-    private OnResolvedListener onResolvedListener;
+    private OnConfirmedListener onConfirmedListener;
 
     private ActivityResultLauncher<String[]> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
     private ActivityResultLauncher<String[]> cameraPermLauncher;
 
-    public void setOnResolvedListener(OnResolvedListener l) { this.onResolvedListener = l; }
+    public void setOnConfirmedListener(OnConfirmedListener l) { this.onConfirmedListener = l; }
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        b = BottomSheetAdminResolveBinding.inflate(inflater, container, false);
+        b = BottomSheetAuthorConfirmClosureBinding.inflate(inflater, container, false);
         return b.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         registerLaunchers();
-
         b.btnCamera.setOnClickListener(v -> requestCamera());
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
         b.btnCancel.setOnClickListener(v -> dismiss());
-        b.btnResolve.setOnClickListener(v -> submit());
+        b.btnConfirm.setOnClickListener(v -> submit());
     }
 
     private void registerLaunchers() {
@@ -122,7 +119,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         try {
             File dir = new File(requireContext().getCacheDir(), "images");
             if (!dir.exists()) dir.mkdirs();
-            File file = new File(dir, "report_" + System.currentTimeMillis() + ".jpg");
+            File file = new File(dir, "closure_" + System.currentTimeMillis() + ".jpg");
             cameraUri = FileProvider.getUriForFile(requireContext(),
                     requireContext().getPackageName() + ".fileprovider", file);
             cameraLauncher.launch(cameraUri);
@@ -146,52 +143,58 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void submit() {
-        String report = b.etReport.getText() != null ? b.etReport.getText().toString().trim() : "";
-        if (report.isEmpty()) { b.tilReport.setError("Обязательное поле"); return; }
-        b.tilReport.setError(null);
-        String organization = b.etExecutor.getText() != null ? b.etExecutor.getText().toString().trim() : "";
-        if (organization.isEmpty()) {
-            b.tilExecutor.setError(getString(R.string.admin_close_organization_required));
-            return;
-        }
-        b.tilExecutor.setError(null);
-        if (photoUris.isEmpty()) {
-            toast("Добавьте хотя бы одно фото");
-            return;
-        }
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) { toast("Ошибка авторизации"); return; }
-
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) { toast("Ошибка авторизации"); return; }
+        final String uid = auth.getCurrentUser().getUid();
         String issueId = requireArguments().getString(ARG_ISSUE_ID);
-        String uid = user.getUid();
+        if (issueId == null) return;
+        String comment = b.etComment.getText() != null ? b.etComment.getText().toString().trim() : "";
+        b.tilComment.setError(null);
 
         setLoading(true);
-        uploadPhotos(issueId, uid, organization, report, 0, new ArrayList<>());
+        issueRepo.get(issueId).addOnSuccessListener(snap -> {
+            if (b == null) return;
+            if (!snap.exists()) {
+                setLoading(false);
+                toast("Заявка не найдена");
+                dismiss();
+                return;
+            }
+            Issue issue = snap.toObject(Issue.class);
+            if (issue == null || issue.getAuthorId() == null || !issue.getAuthorId().equals(uid)) {
+                setLoading(false);
+                toast(getString(R.string.author_closure_confirm_forbidden));
+                dismiss();
+                return;
+            }
+            if (!issue.needsAuthorClosureConfirmation()) {
+                setLoading(false);
+                toast(getString(R.string.author_closure_confirm_not_pending));
+                dismiss();
+                return;
+            }
+            if (photoUris.isEmpty()) {
+                finishUpload(issueId, comment, new ArrayList<>());
+            } else {
+                uploadPhotos(issueId, comment, 0, new ArrayList<>());
+            }
+        }).addOnFailureListener(e -> {
+            if (b == null) return;
+            setLoading(false);
+            toast("Ошибка загрузки заявки");
+        });
     }
 
-    private void uploadPhotos(String issueId, String uid, String organization,
-                              String report, int index, List<String> collected) {
+    private void uploadPhotos(String issueId, String comment, int index, List<String> collected) {
         if (index >= photoUris.size()) {
-            issueRepo.resolve(issueId, uid, organization, report, collected)
-                    .addOnSuccessListener(v -> {
-                        setLoading(false);
-                        sendNotificationToAuthor(issueId, organization);
-                        toast("Заявка закрыта");
-                        if (onResolvedListener != null) onResolvedListener.onResolved();
-                        dismiss();
-                    })
-                    .addOnFailureListener(e -> {
-                        setLoading(false);
-                        toast("Ошибка сохранения");
-                    });
+            finishUpload(issueId, comment, collected);
             return;
         }
-        CloudinaryManager.upload(photoUris.get(index), "issues/" + issueId + "/report",
+        CloudinaryManager.upload(photoUris.get(index), "issues/" + issueId + "/author_closure",
                 new CloudinaryManager.UploadResultCallback() {
                     @Override public void onSuccess(String url) {
                         collected.add(url);
-                        uploadPhotos(issueId, uid, organization, report, index + 1, collected);
+                        uploadPhotos(issueId, comment, index + 1, collected);
                     }
                     @Override public void onError(String msg) {
                         setLoading(false);
@@ -200,21 +203,24 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
                 });
     }
 
-    private void sendNotificationToAuthor(String issueId, String organizationName) {
-        issueRepo.get(issueId).addOnSuccessListener(snap -> {
-            if (!snap.exists()) return;
-            String authorId = snap.getString("authorId");
-            String title = snap.getString("title");
-            FirebaseUser me = FirebaseAuth.getInstance().getCurrentUser();
-            if (authorId == null || (me != null && authorId.equals(me.getUid()))) return;
-            notifRepo.send(authorId, issueId, title != null ? title : "", organizationName);
-        });
+    private void finishUpload(String issueId, String comment, List<String> urls) {
+        issueRepo.confirmAuthorClosure(issueId, comment, urls)
+                .addOnSuccessListener(v -> {
+                    setLoading(false);
+                    toast("Закрытие подтверждено");
+                    if (onConfirmedListener != null) onConfirmedListener.onConfirmed();
+                    dismiss();
+                })
+                .addOnFailureListener(e -> {
+                    setLoading(false);
+                    toast("Ошибка сохранения");
+                });
     }
 
     private void setLoading(boolean loading) {
         if (b == null) return;
         b.progress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        b.btnResolve.setEnabled(!loading);
+        b.btnConfirm.setEnabled(!loading);
         b.btnCamera.setEnabled(!loading);
         b.btnGallery.setEnabled(!loading);
     }

@@ -40,8 +40,13 @@ public class Issue {
     private Date resolvedAt;
     private String resolvedBy;
     private String resolvedByName;
+    private String closureOrganization;
     private String resolveReport;
     private List<String> reportPhotoUrls = new ArrayList<>();
+    private Boolean authorClosureConfirmed;
+    private String authorClosureComment;
+    private List<String> authorClosurePhotoUrls = new ArrayList<>();
+    private Date authorClosureConfirmedAt;
     private int commentCount;
 
     public Issue() { }
@@ -117,11 +122,36 @@ public class Issue {
     public String getResolvedByName() { return resolvedByName; }
     public void setResolvedByName(String resolvedByName) { this.resolvedByName = resolvedByName; }
 
+    public String getClosureOrganization() { return closureOrganization; }
+    public void setClosureOrganization(String closureOrganization) {
+        this.closureOrganization = closureOrganization;
+    }
+
     public String getResolveReport() { return resolveReport; }
     public void setResolveReport(String resolveReport) { this.resolveReport = resolveReport; }
 
     public List<String> getReportPhotoUrls() { return reportPhotoUrls; }
     public void setReportPhotoUrls(List<String> reportPhotoUrls) { this.reportPhotoUrls = reportPhotoUrls; }
+
+    public Boolean getAuthorClosureConfirmed() { return authorClosureConfirmed; }
+    public void setAuthorClosureConfirmed(Boolean authorClosureConfirmed) {
+        this.authorClosureConfirmed = authorClosureConfirmed;
+    }
+
+    public String getAuthorClosureComment() { return authorClosureComment; }
+    public void setAuthorClosureComment(String authorClosureComment) {
+        this.authorClosureComment = authorClosureComment;
+    }
+
+    public List<String> getAuthorClosurePhotoUrls() { return authorClosurePhotoUrls; }
+    public void setAuthorClosurePhotoUrls(List<String> authorClosurePhotoUrls) {
+        this.authorClosurePhotoUrls = authorClosurePhotoUrls;
+    }
+
+    public Date getAuthorClosureConfirmedAt() { return authorClosureConfirmedAt; }
+    public void setAuthorClosureConfirmedAt(Date authorClosureConfirmedAt) {
+        this.authorClosureConfirmedAt = authorClosureConfirmedAt;
+    }
 
     public int getCommentCount() { return commentCount; }
     public void setCommentCount(int commentCount) { this.commentCount = commentCount; }
@@ -131,4 +161,33 @@ public class Issue {
 
     @Exclude
     public boolean isRejected() { return STATUS_REJECTED.equals(status); }
+
+    @Exclude
+    public String getClosureOrganizationDisplay() {
+        if (closureOrganization != null && !closureOrganization.trim().isEmpty()) {
+            return closureOrganization.trim();
+        }
+        if (resolvedByName != null && !resolvedByName.trim().isEmpty()) {
+            return resolvedByName.trim();
+        }
+        return "";
+    }
+
+    @Exclude
+    public boolean needsAuthorClosureConfirmation() {
+        if (!isResolved()) return false;
+        if (Boolean.TRUE.equals(authorClosureConfirmed)) return false;
+        if (authorClosureConfirmed == null) return false;
+        String aid = authorId;
+        String rid = resolvedBy;
+        return aid != null && rid != null && !aid.equals(rid);
+    }
+
+    @Exclude
+    public boolean hasAuthorClosurePublicContent() {
+        if (Boolean.TRUE.equals(authorClosureConfirmed)) return true;
+        if (authorClosureConfirmedAt != null) return true;
+        if (authorClosureComment != null && !authorClosureComment.trim().isEmpty()) return true;
+        return authorClosurePhotoUrls != null && !authorClosurePhotoUrls.isEmpty();
+    }
 }

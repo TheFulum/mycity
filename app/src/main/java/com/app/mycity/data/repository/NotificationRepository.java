@@ -19,14 +19,17 @@ public class NotificationRepository {
     private static final String COLLECTION = "notifications";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    public Task<Void> send(String userId, String issueId, String issueTitle, String adminName) {
+    public Task<Void> send(String userId, String issueId, String issueTitle, String closureOrganization) {
         Map<String, Object> data = new HashMap<>();
         data.put("userId", userId);
         data.put("issueId", issueId);
         data.put("issueTitle", issueTitle);
         String safeTitle = issueTitle != null && !issueTitle.isEmpty() ? issueTitle : "заявку";
-        String safeAdmin = adminName != null && !adminName.isEmpty() ? adminName : "Администратор";
-        data.put("message", safeAdmin + " закрыл заявку «" + safeTitle + "»");
+        String safeOrg = closureOrganization != null && !closureOrganization.trim().isEmpty()
+                ? closureOrganization.trim()
+                : "Организация";
+        data.put("message", "Организация «" + safeOrg + "» закрыла заявку «" + safeTitle
+                + "». Откройте заявку и подтвердите закрытие.");
         data.put("createdAt", new Date());
         data.put("read", false);
         return db.collection(COLLECTION).document().set(data)

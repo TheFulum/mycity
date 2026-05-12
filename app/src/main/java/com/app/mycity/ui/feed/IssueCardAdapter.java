@@ -60,6 +60,7 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
                 return equals(a.getTitle(), b.getTitle())
                         && equals(a.getStatus(), b.getStatus())
                         && equals(a.getResolvedByName(), b.getResolvedByName())
+                        && equals(a.getClosureOrganization(), b.getClosureOrganization())
                         && a.getCommentCount() == b.getCommentCount();
             }
             private boolean equals(String a, String b) {
@@ -122,9 +123,15 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
                 b.tvStatus.setBackgroundResource(R.drawable.bg_status_active);
             }
 
-            if (issue.isResolved() && issue.getResolvedByName() != null && !issue.getResolvedByName().trim().isEmpty()) {
-                b.tvResolvedBy.setVisibility(View.VISIBLE);
-                b.tvResolvedBy.setText("Исполнитель: " + issue.getResolvedByName().trim());
+            if (issue.isResolved()) {
+                String org = issue.getClosureOrganizationDisplay();
+                if (!org.isEmpty()) {
+                    b.tvResolvedBy.setVisibility(View.VISIBLE);
+                    b.tvResolvedBy.setText(b.getRoot().getContext().getString(
+                            R.string.detail_organization_line, org));
+                } else {
+                    b.tvResolvedBy.setVisibility(View.GONE);
+                }
             } else {
                 b.tvResolvedBy.setVisibility(View.GONE);
             }

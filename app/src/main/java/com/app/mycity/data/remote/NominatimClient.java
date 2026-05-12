@@ -3,6 +3,7 @@ package com.app.mycity.data.remote;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -14,6 +15,12 @@ public class NominatimClient {
     public static NominatimApi get() {
         if (api == null) {
             OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        Request r = chain.request().newBuilder()
+                                .header("Accept-Language", NominatimApi.ACCEPT_LANGUAGE)
+                                .build();
+                        return chain.proceed(r);
+                    })
                     .connectTimeout(15, TimeUnit.SECONDS)
                     .readTimeout(15, TimeUnit.SECONDS)
                     .writeTimeout(15, TimeUnit.SECONDS)

@@ -28,6 +28,13 @@
 
     <!-- Детальный экран -->
     <string name="detail_report_title">Отчёт о выполнении</string>
+    <string name="detail_organization_line">Организация: %1$s</string>
+    <string name="detail_closed_at_line">Дата закрытия: %1$s</string>
+    <string name="detail_closure_unknown_executor">Не указано</string>
+    <string name="detail_closure_no_report_text">Текст отчёта не указан.</string>
+    <string name="detail_closure_no_date">Дата закрытия не указана.</string>
+    <string name="detail_author_closure_confirmed_at">Подтверждено: %1$s</string>
+    <string name="detail_author_closure_no_date">Дата подтверждения не указана.</string>
     <string name="detail_comments">Комментарии</string>
     <string name="detail_leave_rating">Оставить оценку</string>
     <string name="detail_send">Отправить</string>
@@ -35,6 +42,23 @@
     <string name="detail_delete">Удалить</string>
     <string name="detail_no_comments">Пока нет комментариев</string>
     <string name="detail_rate_hint">Ваш отзыв</string>
+    <string name="author_closure_card_title">Подтвердите закрытие заявки</string>
+    <string name="author_closure_card_body">Администрация отметила заявку как выполненную. Подтвердите закрытие или оставьте комментарий и фото при необходимости.</string>
+    <string name="author_closure_open_sheet">Подтвердить</string>
+    <string name="author_closure_feedback_title">Подтверждение автора заявки</string>
+    <string name="author_closure_sheet_title">Подтверждение закрытия</string>
+    <string name="author_closure_sheet_hint">Комментарий и фото необязательны.</string>
+    <string name="author_closure_comment_hint">Комментарий к закрытию</string>
+    <string name="author_closure_photos_hint">Фото (необязательно, до 5)</string>
+    <string name="author_closure_camera">Камера</string>
+    <string name="author_closure_gallery">Галерея</string>
+    <string name="author_closure_cancel">Отмена</string>
+    <string name="author_closure_confirm">Подтвердить</string>
+
+    <string name="author_closure_confirm_forbidden">Подтвердить закрытие может только автор заявки.</string>
+    <string name="author_closure_confirm_not_pending">Подтверждение закрытия сейчас не требуется.</string>
+    <string name="admin_close_organization_hint">Название организации (как в отчёте для горожан)</string>
+    <string name="admin_close_organization_required">Укажите название организации</string>
 
     <!-- Профиль -->
     <string name="profile_edit">Редактировать</string>

@@ -176,8 +176,22 @@ public class IssueRepository {
         data.put("resolvedAt", new java.util.Date());
         data.put("resolvedBy", resolvedBy);
         data.put("resolvedByName", resolvedByName);
+        data.put("closureOrganization", resolvedByName);
         data.put("resolveReport", report);
         data.put("reportPhotoUrls", photoUrls);
+        data.put("authorClosureConfirmed", false);
+        data.put("authorClosureComment", null);
+        data.put("authorClosurePhotoUrls", new java.util.ArrayList<>());
+        data.put("authorClosureConfirmedAt", null);
+        return db.collection(COLLECTION).document(issueId).update(data);
+    }
+
+    public Task<Void> confirmAuthorClosure(String issueId, String comment, java.util.List<String> photoUrls) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("authorClosureConfirmed", true);
+        data.put("authorClosureComment", (comment != null && !comment.trim().isEmpty()) ? comment.trim() : null);
+        data.put("authorClosurePhotoUrls", photoUrls != null ? photoUrls : new java.util.ArrayList<>());
+        data.put("authorClosureConfirmedAt", new java.util.Date());
         return db.collection(COLLECTION).document(issueId).update(data);
     }
 

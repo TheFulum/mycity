@@ -27,8 +27,7 @@ import androidx.fragment.app.Fragment;
 import com.app.mycity.R;
 import com.app.mycity.data.model.Issue;
 import com.app.mycity.data.model.UserProfile;
-import com.app.mycity.data.remote.NominatimClient;
-import com.app.mycity.data.remote.NominatimResponse;
+import com.app.mycity.data.remote.NominatimAddressResolver;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.FragmentCreateIssueBinding;
@@ -57,10 +56,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class CreateIssueFragment extends Fragment {
 
     private static final int MAX_PHOTOS = 5;
@@ -79,6 +74,7 @@ public class CreateIssueFragment extends Fragment {
     private DraftStore draftStore;
     private boolean submitted;
     private Marker pickerMarker;
+    private long resolveAddressSeq;
 
     private ActivityResultLauncher<String[]> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -417,59 +413,30 @@ public class CreateIssueFragment extends Fragment {
     }
 
     private void resolveAddress(double lat, double lng) {
-        // Fast path: Android Geocoder on background thread.
-        new Thread(() -> {
-            try {
-                android.location.Geocoder g = new android.location.Geocoder(
-                        requireContext().getApplicationContext(), new java.util.Locale("ru"));
-                java.util.List<android.location.Address> res = g.getFromLocation(lat, lng, 1);
-                if (res != null && !res.isEmpty()) {
-                    android.location.Address a = res.get(0);
-                    String street = a.getThoroughfare();
-                    String house = a.getSubThoroughfare();
-                    String locality = a.getLocality() != null ? a.getLocality() : a.getSubAdminArea();
-                    StringBuilder sb = new StringBuilder();
-                    if (street != null) sb.append(street);
-                    if (house != null) { if (sb.length() > 0) sb.append(", "); sb.append(house); }
-                    if (sb.length() == 0 && locality != null) sb.append(locality);
-                    final String addr = sb.toString();
-                    if (!addr.isEmpty()) {
-                        if (getActivity() == null) return;
-                        getActivity().runOnUiThread(() -> {
-                            if (b == null || pendingAddress != null) return;
-                            pendingAddress = addr;
-                            b.tvAddress.setText(addr);
-                        });
-                    }
-                }
-            } catch (Throwable t) {
-                android.util.Log.w("Geocoder", "failed", t);
-            }
-        }).start();
-
-        NominatimClient.get().reverse(NominatimClient.userAgent(), lat, lng)
-                .enqueue(new Callback<NominatimResponse>() {
+        final long seq = ++resolveAddressSeq;
+        NominatimAddressResolver.resolve(
+                b.getRoot(),
+                requireContext().getApplicationContext(),
+                seq,
+                () -> resolveAddressSeq,
+                lat,
+                lng,
+                new NominatimAddressResolver.AddressListener() {
                     @Override
-                    public void onResponse(@NonNull Call<NominatimResponse> call,
-                                           @NonNull Response<NominatimResponse> response) {
-                        if (b == null) return;
-                        NominatimResponse body = response.body();
-                        android.util.Log.d("Nominatim", "code=" + response.code()
-                                + " body=" + (body != null ? body.displayName : "null"));
-                        String addr = body != null ? body.shortAddress() : null;
-                        if (addr != null && !addr.isEmpty()) {
-                            pendingAddress = addr;
-                            b.tvAddress.setText(addr);
-                        } else if (pendingAddress == null) {
-                            b.tvAddress.setText("Адрес не найден");
+                    public void onResolved(@NonNull String address) {
+                        if (b == null || seq != resolveAddressSeq) {
+                            return;
                         }
+                        pendingAddress = address;
+                        b.tvAddress.setText(address);
                     }
 
                     @Override
-                    public void onFailure(@NonNull Call<NominatimResponse> call, @NonNull Throwable t) {
-                        if (b == null) return;
-                        android.util.Log.e("Nominatim", "reverse failed", t);
-                        if (pendingAddress == null) b.tvAddress.setText("Адрес не найден");
+                    public void onNotFound() {
+                        if (b == null || seq != resolveAddressSeq) {
+                            return;
+                        }
+                        b.tvAddress.setText("Адрес не найден");
                     }
                 });
     }

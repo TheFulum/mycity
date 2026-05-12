@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.app.mycity.R;
+import com.app.mycity.data.remote.NominatimAddressResolver;
 import com.app.mycity.databinding.FragmentMapFullscreenBinding;
 import com.app.mycity.util.GeoUtils;
 
@@ -126,37 +127,30 @@ public class MapFullscreenFragment extends Fragment {
         if (b == null) return;
         b.tvAddress.setText("Определяем адрес…");
         final long seq = ++addressSeq;
-        new Thread(() -> {
-            try {
-                android.location.Geocoder g = new android.location.Geocoder(
-                        requireContext().getApplicationContext(), new java.util.Locale("ru"));
-                java.util.List<android.location.Address> res = g.getFromLocation(lat, lng, 1);
-                String addr = "";
-                if (res != null && !res.isEmpty()) {
-                    android.location.Address a = res.get(0);
-                    String street = a.getThoroughfare();
-                    String house = a.getSubThoroughfare();
-                    String locality = a.getLocality() != null ? a.getLocality() : a.getSubAdminArea();
-                    StringBuilder sb = new StringBuilder();
-                    if (street != null) sb.append(street);
-                    if (house != null) { if (sb.length() > 0) sb.append(", "); sb.append(house); }
-                    if (sb.length() == 0 && locality != null) sb.append(locality);
-                    addr = sb.toString();
-                }
-                final String finalAddr = addr;
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() -> {
-                    if (b == null || seq != addressSeq) return;
-                    b.tvAddress.setText(finalAddr.isEmpty() ? "Адрес не найден" : finalAddr);
+        NominatimAddressResolver.resolve(
+                b.getRoot(),
+                requireContext().getApplicationContext(),
+                seq,
+                () -> addressSeq,
+                lat,
+                lng,
+                new NominatimAddressResolver.AddressListener() {
+                    @Override
+                    public void onResolved(@NonNull String address) {
+                        if (b == null || seq != addressSeq) {
+                            return;
+                        }
+                        b.tvAddress.setText(address);
+                    }
+
+                    @Override
+                    public void onNotFound() {
+                        if (b == null || seq != addressSeq) {
+                            return;
+                        }
+                        b.tvAddress.setText("Адрес не найден");
+                    }
                 });
-            } catch (Exception ignored) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() -> {
-                    if (b == null || seq != addressSeq) return;
-                    b.tvAddress.setText("Адрес не найден");
-                });
-            }
-        }).start();
     }
 
     @Override public void onResume()  { super.onResume();  if (b != null) b.mapView.onResume(); }

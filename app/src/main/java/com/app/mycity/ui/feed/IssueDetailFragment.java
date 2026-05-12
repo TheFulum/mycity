@@ -70,6 +70,7 @@ public class IssueDetailFragment extends Fragment {
     private CommentAdapter commentAdapter;
     private PhotoPagerAdapter photoAdapter;
     private PhotoPagerAdapter reportAdapter;
+    private PhotoPagerAdapter authorClosureAdapter;
 
     private String issueId;
     private String myUid;
@@ -98,6 +99,10 @@ public class IssueDetailFragment extends Fragment {
         reportAdapter = new PhotoPagerAdapter();
         reportAdapter.setOnPhotoClick(index -> launchGallery(reportAdapter.getUrls(), index));
         b.reportPager.setAdapter(reportAdapter);
+
+        authorClosureAdapter = new PhotoPagerAdapter();
+        authorClosureAdapter.setOnPhotoClick(index -> launchGallery(authorClosureAdapter.getUrls(), index));
+        b.authorClosurePager.setAdapter(authorClosureAdapter);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         myUid = user != null ? user.getUid() : null;
@@ -402,6 +407,11 @@ public class IssueDetailFragment extends Fragment {
                     issue.setResolvedByName(null);
                     issue.setResolveReport(null);
                     issue.setReportPhotoUrls(new ArrayList<>());
+                    issue.setAuthorClosureConfirmed(null);
+                    issue.setAuthorClosureComment(null);
+                    issue.setAuthorClosurePhotoUrls(new ArrayList<>());
+                    issue.setAuthorClosureConfirmedAt(null);
+                    issue.setClosureOrganization(null);
                     issueRepo.save(issue).addOnFailureListener(
                             e -> Toast.makeText(requireContext(), "Ошибка", Toast.LENGTH_SHORT).show());
                 })
@@ -476,23 +486,22 @@ public class IssueDetailFragment extends Fragment {
             }
         });
 
-        if (issue.isResolved() && (issue.getResolveReport() != null || issue.getResolvedBy() != null)) {
+        if (issue.isResolved()) {
             b.reportBlock.setVisibility(View.VISIBLE);
-            String resolvedName = issue.getResolvedByName() != null
-                    ? issue.getResolvedByName()
-                    : (issue.getResolvedBy() != null ? issue.getResolvedBy() : "");
-            b.tvResolvedBy.setText("Закрыл(а): " + resolvedName);
-            String resolvedUid = issue.getResolvedBy();
-            if (resolvedUid != null) {
-                b.tvResolvedBy.setOnClickListener(v -> {
-                    if (getActivity() instanceof MainActivity)
-                        ((MainActivity) getActivity()).openUserProfile(resolvedUid);
-                });
-            } else {
-                b.tvResolvedBy.setOnClickListener(null);
+            String orgDisplay = issue.getClosureOrganizationDisplay();
+            if (orgDisplay.isEmpty()) {
+                orgDisplay = getString(R.string.detail_closure_unknown_executor);
             }
-            b.tvResolveReport.setText(issue.getResolveReport() != null ? issue.getResolveReport() : "");
-            b.tvResolvedAt.setText(DateUtils.format(issue.getResolvedAt()));
+            b.tvResolvedBy.setText(getString(R.string.detail_organization_line, orgDisplay));
+            b.tvResolvedBy.setOnClickListener(null);
+            String reportText = issue.getResolveReport() != null ? issue.getResolveReport().trim() : "";
+            b.tvResolveReport.setText(reportText.isEmpty()
+                    ? getString(R.string.detail_closure_no_report_text)
+                    : issue.getResolveReport());
+            String closedAt = DateUtils.format(issue.getResolvedAt());
+            b.tvResolvedAt.setText(closedAt.isEmpty()
+                    ? getString(R.string.detail_closure_no_date)
+                    : getString(R.string.detail_closed_at_line, closedAt));
             if (issue.getReportPhotoUrls() != null && !issue.getReportPhotoUrls().isEmpty()) {
                 b.reportPager.setVisibility(View.VISIBLE);
                 reportAdapter.submit(issue.getReportPhotoUrls());
@@ -501,6 +510,45 @@ public class IssueDetailFragment extends Fragment {
             }
         } else {
             b.reportBlock.setVisibility(View.GONE);
+        }
+
+        boolean pendingAuthorClosure = issue.needsAuthorClosureConfirmation()
+                && myUid != null && myUid.equals(issue.getAuthorId());
+        b.authorClosureConfirmCard.setVisibility(pendingAuthorClosure ? View.VISIBLE : View.GONE);
+        if (pendingAuthorClosure) {
+            b.btnAuthorConfirmClosure.setOnClickListener(v -> {
+                if (myUid == null || !myUid.equals(issue.getAuthorId())) return;
+                AuthorConfirmClosureBottomSheet bs = AuthorConfirmClosureBottomSheet.newInstance(issue.getId());
+                bs.show(getChildFragmentManager(), "author_confirm_closure");
+            });
+        } else {
+            b.btnAuthorConfirmClosure.setOnClickListener(null);
+        }
+
+        if (issue.hasAuthorClosurePublicContent()) {
+            b.authorClosureFeedbackBlock.setVisibility(View.VISIBLE);
+            String at = issue.getAuthorClosureConfirmedAt() != null
+                    ? DateUtils.format(issue.getAuthorClosureConfirmedAt())
+                    : "";
+            b.tvAuthorClosureConfirmedAt.setText(at.isEmpty()
+                    ? getString(R.string.detail_author_closure_no_date)
+                    : getString(R.string.detail_author_closure_confirmed_at, at));
+            String closureComment = issue.getAuthorClosureComment();
+            if (closureComment != null && !closureComment.trim().isEmpty()) {
+                b.tvAuthorClosureComment.setText(closureComment.trim());
+                b.tvAuthorClosureComment.setVisibility(View.VISIBLE);
+            } else {
+                b.tvAuthorClosureComment.setVisibility(View.GONE);
+            }
+            List<String> closurePhotos = issue.getAuthorClosurePhotoUrls();
+            if (closurePhotos != null && !closurePhotos.isEmpty()) {
+                b.authorClosurePager.setVisibility(View.VISIBLE);
+                authorClosureAdapter.submit(closurePhotos);
+            } else {
+                b.authorClosurePager.setVisibility(View.GONE);
+            }
+        } else {
+            b.authorClosureFeedbackBlock.setVisibility(View.GONE);
         }
     }
 

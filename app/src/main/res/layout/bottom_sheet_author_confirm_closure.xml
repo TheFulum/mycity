@@ -11,54 +11,44 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Закрыть заявку"
+        android:text="@string/author_closure_sheet_title"
         android:textColor="@color/text_primary"
         android:textSize="16sp"
         android:textStyle="bold" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_report"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Описание решения (минимум 20 символов)"
+        android:layout_marginTop="8dp"
+        android:text="@string/author_closure_sheet_hint"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_comment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:hint="@string/author_closure_comment_hint"
         app:boxBackgroundColor="@color/input_bg"
         app:boxStrokeColor="@color/input_stroke"
         app:hintTextColor="@color/text_secondary">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_report"
+            android:id="@+id/et_comment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="top"
             android:inputType="textMultiLine"
-            android:minLines="3"
-            android:textColor="@color/text_primary" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_executor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="@string/admin_close_organization_hint"
-        app:boxBackgroundColor="@color/input_bg"
-        app:boxStrokeColor="@color/input_stroke"
-        app:hintTextColor="@color/text_secondary">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_executor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
+            android:minLines="2"
             android:textColor="@color/text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Фото (обязательно, до 5)"
+        android:layout_marginTop="14dp"
+        android:text="@string/author_closure_photos_hint"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
@@ -87,7 +77,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Камера"
+            android:text="@string/author_closure_camera"
             android:textColor="@color/text_primary" />
 
         <Button
@@ -97,7 +87,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Галерея"
+            android:text="@string/author_closure_gallery"
             android:textColor="@color/text_primary" />
     </LinearLayout>
 
@@ -121,17 +111,17 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Отмена"
+            android:text="@string/author_closure_cancel"
             android:textColor="@color/text_secondary" />
 
         <Button
-            android:id="@+id/btn_resolve"
+            android:id="@+id/btn_confirm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/accent_red"
-            android:text="Закрыть заявку"
+            android:backgroundTint="@color/accent_green"
+            android:text="@string/author_closure_confirm"
             android:textColor="@color/on_accent" />
     </LinearLayout>
 </LinearLayout>
