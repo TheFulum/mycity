@@ -49,6 +49,14 @@
                 style="@style/FilterChip"
                 android:layout_marginStart="8dp"
                 android:text="@string/filter_all" />
+
+            <TextView
+                android:id="@+id/chip_category"
+                style="@style/FilterChip"
+                android:layout_marginStart="8dp"
+                android:drawablePadding="4dp"
+                android:drawableEnd="@drawable/ic_arrow_drop_down"
+                android:text="@string/filter_category_all" />
         </LinearLayout>
     </HorizontalScrollView>
 

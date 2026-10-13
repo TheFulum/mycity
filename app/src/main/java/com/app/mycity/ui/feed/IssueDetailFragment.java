@@ -33,7 +33,10 @@ import com.app.mycity.ui.admin.AdminResolveBottomSheet;
 import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.DateUtils;
 import com.app.mycity.util.GeoUtils;
+import com.app.mycity.util.IssueCategory;
 import com.app.mycity.util.SessionManager;
+import androidx.core.content.ContextCompat;
+import android.content.res.ColorStateList;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -70,7 +73,6 @@ public class IssueDetailFragment extends Fragment {
     private CommentAdapter commentAdapter;
     private PhotoPagerAdapter photoAdapter;
     private PhotoPagerAdapter reportAdapter;
-    private PhotoPagerAdapter authorClosureAdapter;
 
     private String issueId;
     private String myUid;
@@ -99,10 +101,6 @@ public class IssueDetailFragment extends Fragment {
         reportAdapter = new PhotoPagerAdapter();
         reportAdapter.setOnPhotoClick(index -> launchGallery(reportAdapter.getUrls(), index));
         b.reportPager.setAdapter(reportAdapter);
-
-        authorClosureAdapter = new PhotoPagerAdapter();
-        authorClosureAdapter.setOnPhotoClick(index -> launchGallery(authorClosureAdapter.getUrls(), index));
-        b.authorClosurePager.setAdapter(authorClosureAdapter);
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         myUid = user != null ? user.getUid() : null;
@@ -407,11 +405,6 @@ public class IssueDetailFragment extends Fragment {
                     issue.setResolvedByName(null);
                     issue.setResolveReport(null);
                     issue.setReportPhotoUrls(new ArrayList<>());
-                    issue.setAuthorClosureConfirmed(null);
-                    issue.setAuthorClosureComment(null);
-                    issue.setAuthorClosurePhotoUrls(new ArrayList<>());
-                    issue.setAuthorClosureConfirmedAt(null);
-                    issue.setClosureOrganization(null);
                     issueRepo.save(issue).addOnFailureListener(
                             e -> Toast.makeText(requireContext(), "Ошибка", Toast.LENGTH_SHORT).show());
                 })
@@ -424,6 +417,16 @@ public class IssueDetailFragment extends Fragment {
         b.tvAddress.setText(GeoUtils.displayAddress(issue.getAddress()));
         b.tvDescription.setText(issue.getDescription());
         b.tvDate.setText(DateUtils.format(issue.getCreatedAt()));
+
+        String category = issue.getCategory();
+        if (category != null && !category.isEmpty()) {
+            b.tvCategory.setVisibility(View.VISIBLE);
+            b.tvCategory.setText(IssueCategory.labelWithEmoji(category));
+            int color = ContextCompat.getColor(requireContext(), IssueCategory.colorRes(category));
+            b.tvCategory.setBackgroundTintList(ColorStateList.valueOf(color));
+        } else {
+            b.tvCategory.setVisibility(View.GONE);
+        }
 
         boolean isAuthor = myUid != null && myUid.equals(issue.getAuthorId());
         b.btnMore.setVisibility(isAuthor ? View.VISIBLE : View.GONE);
@@ -486,22 +489,30 @@ public class IssueDetailFragment extends Fragment {
             }
         });
 
-        if (issue.isResolved()) {
+        if (issue.isResolved() && (issue.getResolveReport() != null || issue.getResolvedBy() != null)) {
             b.reportBlock.setVisibility(View.VISIBLE);
-            String orgDisplay = issue.getClosureOrganizationDisplay();
-            if (orgDisplay.isEmpty()) {
-                orgDisplay = getString(R.string.detail_closure_unknown_executor);
+            String resolvedName = issue.getResolvedByName() != null
+                    ? issue.getResolvedByName()
+                    : (issue.getResolvedBy() != null ? issue.getResolvedBy() : "");
+            String executor = issue.getExecutorName();
+            if (executor != null && !executor.trim().isEmpty() && !executor.equals(resolvedName)) {
+                b.tvExecutor.setVisibility(View.VISIBLE);
+                b.tvExecutor.setText("Исполнитель: " + executor);
+            } else {
+                b.tvExecutor.setVisibility(View.GONE);
             }
-            b.tvResolvedBy.setText(getString(R.string.detail_organization_line, orgDisplay));
-            b.tvResolvedBy.setOnClickListener(null);
-            String reportText = issue.getResolveReport() != null ? issue.getResolveReport().trim() : "";
-            b.tvResolveReport.setText(reportText.isEmpty()
-                    ? getString(R.string.detail_closure_no_report_text)
-                    : issue.getResolveReport());
-            String closedAt = DateUtils.format(issue.getResolvedAt());
-            b.tvResolvedAt.setText(closedAt.isEmpty()
-                    ? getString(R.string.detail_closure_no_date)
-                    : getString(R.string.detail_closed_at_line, closedAt));
+            b.tvResolvedBy.setText("Закрыл(а): " + resolvedName);
+            String resolvedUid = issue.getResolvedBy();
+            if (resolvedUid != null) {
+                b.tvResolvedBy.setOnClickListener(v -> {
+                    if (getActivity() instanceof MainActivity)
+                        ((MainActivity) getActivity()).openUserProfile(resolvedUid);
+                });
+            } else {
+                b.tvResolvedBy.setOnClickListener(null);
+            }
+            b.tvResolveReport.setText(issue.getResolveReport() != null ? issue.getResolveReport() : "");
+            b.tvResolvedAt.setText(DateUtils.format(issue.getResolvedAt()));
             if (issue.getReportPhotoUrls() != null && !issue.getReportPhotoUrls().isEmpty()) {
                 b.reportPager.setVisibility(View.VISIBLE);
                 reportAdapter.submit(issue.getReportPhotoUrls());
@@ -510,45 +521,6 @@ public class IssueDetailFragment extends Fragment {
             }
         } else {
             b.reportBlock.setVisibility(View.GONE);
-        }
-
-        boolean pendingAuthorClosure = issue.needsAuthorClosureConfirmation()
-                && myUid != null && myUid.equals(issue.getAuthorId());
-        b.authorClosureConfirmCard.setVisibility(pendingAuthorClosure ? View.VISIBLE : View.GONE);
-        if (pendingAuthorClosure) {
-            b.btnAuthorConfirmClosure.setOnClickListener(v -> {
-                if (myUid == null || !myUid.equals(issue.getAuthorId())) return;
-                AuthorConfirmClosureBottomSheet bs = AuthorConfirmClosureBottomSheet.newInstance(issue.getId());
-                bs.show(getChildFragmentManager(), "author_confirm_closure");
-            });
-        } else {
-            b.btnAuthorConfirmClosure.setOnClickListener(null);
-        }
-
-        if (issue.hasAuthorClosurePublicContent()) {
-            b.authorClosureFeedbackBlock.setVisibility(View.VISIBLE);
-            String at = issue.getAuthorClosureConfirmedAt() != null
-                    ? DateUtils.format(issue.getAuthorClosureConfirmedAt())
-                    : "";
-            b.tvAuthorClosureConfirmedAt.setText(at.isEmpty()
-                    ? getString(R.string.detail_author_closure_no_date)
-                    : getString(R.string.detail_author_closure_confirmed_at, at));
-            String closureComment = issue.getAuthorClosureComment();
-            if (closureComment != null && !closureComment.trim().isEmpty()) {
-                b.tvAuthorClosureComment.setText(closureComment.trim());
-                b.tvAuthorClosureComment.setVisibility(View.VISIBLE);
-            } else {
-                b.tvAuthorClosureComment.setVisibility(View.GONE);
-            }
-            List<String> closurePhotos = issue.getAuthorClosurePhotoUrls();
-            if (closurePhotos != null && !closurePhotos.isEmpty()) {
-                b.authorClosurePager.setVisibility(View.VISIBLE);
-                authorClosureAdapter.submit(closurePhotos);
-            } else {
-                b.authorClosurePager.setVisibility(View.GONE);
-            }
-        } else {
-            b.authorClosureFeedbackBlock.setVisibility(View.GONE);
         }
     }
 

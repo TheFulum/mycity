@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="transport_filter_all">Все</string>
+    <string name="transport_filter_bus">Автобус</string>
+    <string name="transport_filter_tram">Трамвай</string>
+    <string name="transport_filter_trolleybus">Троллейбус</string>
+    <string name="transport_filter_marshrutka">Маршрутка</string>
+    <string name="transport_type_bus">Автобус</string>
+    <string name="transport_type_tram">Трамвай</string>
+    <string name="transport_type_trolleybus">Троллейбус</string>
+    <string name="transport_type_marshrutka">Маршрутка</string>
+    <string name="transport_empty_feed">Пока нет маршрутов — добавьте через админ-панель</string>
+    <string name="transport_stops_count_format">%d остановок</string>
+    <string name="transport_route_inactive">Не работает</string>
+    <string name="transport_schedule_heading">Расписание</string>
+    <string name="transport_schedule_empty">Расписание скоро появится</string>
+    <string name="transport_stops_heading">Остановки</string>
+</resources>

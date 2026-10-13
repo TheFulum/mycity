@@ -1,5 +1,6 @@
 package com.app.mycity.data.model;
 
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Date;
@@ -26,12 +27,14 @@ public class UserProfile {
     private String blockedReason;
     private Date blockedUntil;
     private Date blockedAt;
+    private String blockedByUid;
 
     public UserProfile() { }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
+    @Exclude
     public boolean isAdmin() { return ROLE_ADMIN.equals(role); }
 
     public String getUid() { return uid; }
@@ -67,15 +70,21 @@ public class UserProfile {
     public Date getBlockedAt() { return blockedAt; }
     public void setBlockedAt(Date blockedAt) { this.blockedAt = blockedAt; }
 
+    public String getBlockedByUid() { return blockedByUid; }
+    public void setBlockedByUid(String blockedByUid) { this.blockedByUid = blockedByUid; }
+
+    @Exclude
     public boolean isPermanentlyBlocked() {
         return BLOCK_PERMANENT.equals(blockedType);
     }
 
+    @Exclude
     public boolean isTemporarilyBlocked() {
         if (!BLOCK_TEMPORARY.equals(blockedType)) return false;
         return blockedUntil != null && blockedUntil.after(new Date());
     }
 
+    @Exclude
     public boolean isBlockedNow() {
         return isPermanentlyBlocked() || isTemporarilyBlocked();
     }

@@ -17,9 +17,9 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
-import com.app.mycity.R;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.data.repository.NotificationRepository;
+import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.BottomSheetAdminResolveBinding;
 import com.app.mycity.databinding.ItemCreatePhotoBinding;
 import com.app.mycity.util.CloudinaryManager;
@@ -50,6 +50,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
     private BottomSheetAdminResolveBinding b;
     private final IssueRepository issueRepo = new IssueRepository();
     private final NotificationRepository notifRepo = new NotificationRepository();
+    private final UserRepository userRepo = new UserRepository();
     private final List<Uri> photoUris = new ArrayList<>();
     private Uri cameraUri;
     private OnResolvedListener onResolvedListener;
@@ -75,6 +76,26 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
         b.btnCancel.setOnClickListener(v -> dismiss());
         b.btnResolve.setOnClickListener(v -> submit());
+
+        prefillExecutor();
+    }
+
+    private void prefillExecutor() {
+        if (b == null) return;
+        CharSequence existing = b.etExecutor.getText();
+        if (existing != null && existing.toString().trim().length() > 0) return;
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        String uid = user.getUid();
+        userRepo.get(uid).addOnSuccessListener(snap -> {
+            if (b == null) return;
+            String name = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            b.etExecutor.setText(resolveAdminName(name, user));
+        }).addOnFailureListener(e -> {
+            if (b == null) return;
+            b.etExecutor.setText(resolveAdminName(null, user));
+        });
     }
 
     private void registerLaunchers() {
@@ -149,12 +170,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         String report = b.etReport.getText() != null ? b.etReport.getText().toString().trim() : "";
         if (report.isEmpty()) { b.tilReport.setError("Обязательное поле"); return; }
         b.tilReport.setError(null);
-        String organization = b.etExecutor.getText() != null ? b.etExecutor.getText().toString().trim() : "";
-        if (organization.isEmpty()) {
-            b.tilExecutor.setError(getString(R.string.admin_close_organization_required));
-            return;
-        }
-        b.tilExecutor.setError(null);
+        String executor = b.etExecutor.getText() != null ? b.etExecutor.getText().toString().trim() : "";
         if (photoUris.isEmpty()) {
             toast("Добавьте хотя бы одно фото");
             return;
@@ -167,16 +183,35 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
         String uid = user.getUid();
 
         setLoading(true);
-        uploadPhotos(issueId, uid, organization, report, 0, new ArrayList<>());
+        userRepo.get(uid).addOnSuccessListener(snap -> {
+            String firestoreName = snap != null && snap.exists() ? snap.getString("displayName") : null;
+            String adminName = resolveAdminName(firestoreName, user);
+            String finalExecutor = executor != null && !executor.isEmpty() ? executor : adminName;
+            if (b != null) b.etExecutor.setText(finalExecutor);
+            uploadPhotos(issueId, uid, adminName, finalExecutor, report, 0, new ArrayList<>());
+        }).addOnFailureListener(e -> {
+            String adminName = resolveAdminName(null, user);
+            String finalExecutor = executor != null && !executor.isEmpty() ? executor : adminName;
+            if (b != null) b.etExecutor.setText(finalExecutor);
+            uploadPhotos(issueId, uid, adminName, finalExecutor, report, 0, new ArrayList<>());
+        });
     }
 
-    private void uploadPhotos(String issueId, String uid, String organization,
+    private String resolveAdminName(String firestoreName, FirebaseUser user) {
+        if (firestoreName != null && !firestoreName.trim().isEmpty()) return firestoreName.trim();
+        if (user != null && user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
+            return user.getDisplayName().trim();
+        }
+        return "Администратор";
+    }
+
+    private void uploadPhotos(String issueId, String uid, String adminName, String executorName,
                               String report, int index, List<String> collected) {
         if (index >= photoUris.size()) {
-            issueRepo.resolve(issueId, uid, organization, report, collected)
+            issueRepo.resolve(issueId, uid, adminName, executorName, report, collected)
                     .addOnSuccessListener(v -> {
                         setLoading(false);
-                        sendNotificationToAuthor(issueId, organization);
+                        sendNotificationToAuthor(issueId, adminName);
                         toast("Заявка закрыта");
                         if (onResolvedListener != null) onResolvedListener.onResolved();
                         dismiss();
@@ -191,7 +226,7 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
                 new CloudinaryManager.UploadResultCallback() {
                     @Override public void onSuccess(String url) {
                         collected.add(url);
-                        uploadPhotos(issueId, uid, organization, report, index + 1, collected);
+                        uploadPhotos(issueId, uid, adminName, executorName, report, index + 1, collected);
                     }
                     @Override public void onError(String msg) {
                         setLoading(false);
@@ -200,14 +235,14 @@ public class AdminResolveBottomSheet extends BottomSheetDialogFragment {
                 });
     }
 
-    private void sendNotificationToAuthor(String issueId, String organizationName) {
+    private void sendNotificationToAuthor(String issueId, String adminName) {
         issueRepo.get(issueId).addOnSuccessListener(snap -> {
             if (!snap.exists()) return;
             String authorId = snap.getString("authorId");
             String title = snap.getString("title");
-            FirebaseUser me = FirebaseAuth.getInstance().getCurrentUser();
+            FirebaseUser me = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
             if (authorId == null || (me != null && authorId.equals(me.getUid()))) return;
-            notifRepo.send(authorId, issueId, title != null ? title : "", organizationName);
+            notifRepo.send(authorId, issueId, title != null ? title : "", adminName);
         });
     }
 

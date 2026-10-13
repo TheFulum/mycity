@@ -16,7 +16,9 @@ import com.app.mycity.databinding.ActivityLoginBinding;
 import com.app.mycity.data.model.UserProfile;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.ui.onboarding.OnboardingActivity;
 import com.app.mycity.util.FirebaseErrors;
+import com.app.mycity.util.SessionManager;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -150,8 +152,12 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goToMain() {
-        Intent intent = new Intent(this, MainActivity.class);
+        SessionManager session = new SessionManager(this);
+        Intent intent = session.isOnboardingCompleted()
+                ? new Intent(this, MainActivity.class)
+                : new Intent(this, OnboardingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        finish();
     }
 }

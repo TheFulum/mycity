@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_my_posts">Мои посты</string>
+    <string name="profile_no_posts">Вы пока не публиковали посты</string>
+</resources>

@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase CLI
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+
+# Сборки и логи
+*.apk
+*.aab
+build-debug.log

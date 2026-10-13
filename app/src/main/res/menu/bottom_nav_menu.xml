@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_problems"
+        android:icon="@drawable/ic_section_problems"
+        android:title="@string/section_problems" />
+    <item
+        android:id="@+id/nav_city"
+        android:icon="@drawable/ic_section_city"
+        android:title="@string/section_city" />
+    <item
+        android:id="@+id/nav_news"
+        android:icon="@drawable/ic_section_news"
+        android:title="@string/section_news" />
+    <item
+        android:id="@+id/nav_transport"
+        android:icon="@drawable/ic_section_transport"
+        android:title="@string/section_transport" />
+</menu>

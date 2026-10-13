@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="city_filter_all">Все</string>
+    <string name="city_filter_nature">Природа</string>
+    <string name="city_filter_place">Место</string>
+    <string name="city_filter_venue">Заведение</string>
+    <string name="city_filter_history">История</string>
+    <string name="city_sort_date">По дате</string>
+    <string name="city_sort_likes">По лайкам</string>
+    <string name="city_sort_comments">По комментариям</string>
+    <string name="city_sort_title">Сортировка</string>
+    <string name="city_sort_button">Сортировка</string>
+    <string name="city_sort_reverse_cd">Изменить направление сортировки</string>
+    <string name="city_empty">Постов пока нет — будь первым</string>
+    <string name="city_load_error">Не удалось загрузить посты</string>
+    <string name="city_likes_prefix">♥</string>
+    <string name="city_comments_prefix">💬</string>
+</resources>

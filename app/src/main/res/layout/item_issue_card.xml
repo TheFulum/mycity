@@ -18,7 +18,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="@dimen/issue_card_image_height"
             android:background="@drawable/bg_image_placeholder">
 
             <ImageView
@@ -40,6 +40,20 @@
                 android:textColor="@color/on_accent"
                 android:textSize="11sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="10dp"
+                android:background="@drawable/bg_category_badge"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/on_accent"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
         </FrameLayout>
 
         <LinearLayout
@@ -95,9 +109,11 @@
 
             <TextView
                 android:id="@+id/tv_author_name"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/accent_blue"
                 android:textSize="12sp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -106,9 +122,11 @@
 
             <TextView
                 android:id="@+id/tv_resolved_by"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:visibility="gone" />

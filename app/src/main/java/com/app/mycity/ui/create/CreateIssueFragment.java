@@ -27,7 +27,8 @@ import androidx.fragment.app.Fragment;
 import com.app.mycity.R;
 import com.app.mycity.data.model.Issue;
 import com.app.mycity.data.model.UserProfile;
-import com.app.mycity.data.remote.NominatimAddressResolver;
+import com.app.mycity.data.remote.NominatimClient;
+import com.app.mycity.data.remote.NominatimResponse;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.FragmentCreateIssueBinding;
@@ -36,12 +37,14 @@ import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.CloudinaryManager;
 import com.app.mycity.util.DraftStore;
 import com.app.mycity.util.GeoUtils;
+import com.app.mycity.util.IssueCategory;
 import com.app.mycity.util.SessionManager;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.osmdroid.events.MapEventsReceiver;
@@ -56,6 +59,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class CreateIssueFragment extends Fragment {
 
     private static final int MAX_PHOTOS = 5;
@@ -66,6 +73,7 @@ public class CreateIssueFragment extends Fragment {
     private Uri cameraUri;
     private Double pendingLat, pendingLng;
     private String pendingAddress;
+    private String selectedCategory;
     private boolean isGuest;
 
     private FusedLocationProviderClient locationClient;
@@ -74,7 +82,6 @@ public class CreateIssueFragment extends Fragment {
     private DraftStore draftStore;
     private boolean submitted;
     private Marker pickerMarker;
-    private long resolveAddressSeq;
 
     private ActivityResultLauncher<String[]> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -104,6 +111,7 @@ public class CreateIssueFragment extends Fragment {
 
         registerLaunchers();
         initMap();
+        buildCategoryChips();
 
         getParentFragmentManager().setFragmentResultListener(
                 com.app.mycity.ui.map.MapFullscreenFragment.RESULT_KEY,
@@ -128,11 +136,44 @@ public class CreateIssueFragment extends Fragment {
         }
     }
 
+    private void buildCategoryChips() {
+        if (b == null) return;
+        b.chipGroupCategory.removeAllViews();
+        for (String key : IssueCategory.ALL) {
+            Chip chip = new Chip(requireContext());
+            chip.setText(IssueCategory.labelWithEmoji(key));
+            chip.setCheckable(true);
+            chip.setTag(key);
+            chip.setOnClickListener(v -> {
+                selectedCategory = (String) v.getTag();
+                b.tvCategoryError.setVisibility(View.GONE);
+            });
+            b.chipGroupCategory.addView(chip);
+        }
+        applySelectedCategoryChip();
+    }
+
+    private void applySelectedCategoryChip() {
+        if (b == null) return;
+        for (int i = 0; i < b.chipGroupCategory.getChildCount(); i++) {
+            View child = b.chipGroupCategory.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                chip.setChecked(selectedCategory != null && selectedCategory.equals(chip.getTag()));
+            }
+        }
+    }
+
     private boolean restoreDraft() {
         if (draftStore == null || !draftStore.hasDraft()) return false;
 
         b.etTitle.setText(draftStore.getTitle());
         b.etDescription.setText(draftStore.getDescription());
+        String draftCategory = draftStore.getCategory();
+        if (draftCategory != null && !draftCategory.isEmpty()) {
+            selectedCategory = draftCategory;
+            applySelectedCategoryChip();
+        }
         if (isGuest) {
             b.etName.setText(draftStore.getGuestName());
             b.etContact.setText(draftStore.getGuestContact());
@@ -180,14 +221,15 @@ public class CreateIssueFragment extends Fragment {
         boolean anyContent = !TextUtils.isEmpty(title) || !TextUtils.isEmpty(desc)
                 || !selectedUris.isEmpty()
                 || !TextUtils.isEmpty(guestName) || !TextUtils.isEmpty(guestContact)
-                || pendingLat != null || pendingLng != null;
+                || pendingLat != null || pendingLng != null
+                || selectedCategory != null;
 
         if (!anyContent) {
             draftStore.clear();
             return;
         }
         draftStore.save(title, desc, pendingLat, pendingLng, pendingAddress,
-                selectedUris, guestName, guestContact);
+                selectedUris, guestName, guestContact, selectedCategory);
     }
 
     private void registerLaunchers() {
@@ -413,30 +455,59 @@ public class CreateIssueFragment extends Fragment {
     }
 
     private void resolveAddress(double lat, double lng) {
-        final long seq = ++resolveAddressSeq;
-        NominatimAddressResolver.resolve(
-                b.getRoot(),
-                requireContext().getApplicationContext(),
-                seq,
-                () -> resolveAddressSeq,
-                lat,
-                lng,
-                new NominatimAddressResolver.AddressListener() {
+        // Fast path: Android Geocoder on background thread.
+        new Thread(() -> {
+            try {
+                android.location.Geocoder g = new android.location.Geocoder(
+                        requireContext().getApplicationContext(), new java.util.Locale("ru"));
+                java.util.List<android.location.Address> res = g.getFromLocation(lat, lng, 1);
+                if (res != null && !res.isEmpty()) {
+                    android.location.Address a = res.get(0);
+                    String street = a.getThoroughfare();
+                    String house = a.getSubThoroughfare();
+                    String locality = a.getLocality() != null ? a.getLocality() : a.getSubAdminArea();
+                    StringBuilder sb = new StringBuilder();
+                    if (street != null) sb.append(street);
+                    if (house != null) { if (sb.length() > 0) sb.append(", "); sb.append(house); }
+                    if (sb.length() == 0 && locality != null) sb.append(locality);
+                    final String addr = sb.toString();
+                    if (!addr.isEmpty()) {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            if (b == null || pendingAddress != null) return;
+                            pendingAddress = addr;
+                            b.tvAddress.setText(addr);
+                        });
+                    }
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("Geocoder", "failed", t);
+            }
+        }).start();
+
+        NominatimClient.get().reverse(NominatimClient.userAgent(), lat, lng)
+                .enqueue(new Callback<NominatimResponse>() {
                     @Override
-                    public void onResolved(@NonNull String address) {
-                        if (b == null || seq != resolveAddressSeq) {
-                            return;
+                    public void onResponse(@NonNull Call<NominatimResponse> call,
+                                           @NonNull Response<NominatimResponse> response) {
+                        if (b == null) return;
+                        NominatimResponse body = response.body();
+                        android.util.Log.d("Nominatim", "code=" + response.code()
+                                + " body=" + (body != null ? body.displayName : "null"));
+                        String addr = body != null ? body.shortAddress() : null;
+                        if (addr != null && !addr.isEmpty()) {
+                            pendingAddress = addr;
+                            b.tvAddress.setText(addr);
+                        } else if (pendingAddress == null) {
+                            b.tvAddress.setText("Адрес не найден");
                         }
-                        pendingAddress = address;
-                        b.tvAddress.setText(address);
                     }
 
                     @Override
-                    public void onNotFound() {
-                        if (b == null || seq != resolveAddressSeq) {
-                            return;
-                        }
-                        b.tvAddress.setText("Адрес не найден");
+                    public void onFailure(@NonNull Call<NominatimResponse> call, @NonNull Throwable t) {
+                        if (b == null) return;
+                        android.util.Log.e("Nominatim", "reverse failed", t);
+                        if (pendingAddress == null) b.tvAddress.setText("Адрес не найден");
                     }
                 });
     }
@@ -468,6 +539,12 @@ public class CreateIssueFragment extends Fragment {
         else b.tilDescription.setError(null);
         if (selectedUris.isEmpty()) { toast(getString(R.string.error_no_photo)); ok = false; }
         if (pendingLat == null || pendingLng == null) { toast(getString(R.string.error_no_location)); ok = false; }
+        if (selectedCategory == null) {
+            b.tvCategoryError.setVisibility(View.VISIBLE);
+            ok = false;
+        } else {
+            b.tvCategoryError.setVisibility(View.GONE);
+        }
 
         String guestName = null, guestContact = null;
         if (isGuest) {
@@ -513,6 +590,7 @@ public class CreateIssueFragment extends Fragment {
 
         issue.setTitle(title);
         issue.setDescription(desc);
+        issue.setCategory(selectedCategory);
         issue.setLat(pendingLat);
         issue.setLng(pendingLng);
         issue.setAddress(bestKnownAddress());

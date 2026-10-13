@@ -4,17 +4,22 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.app.mycity.R;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.databinding.FragmentFeedBinding;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.util.IssueCategory;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
@@ -33,6 +38,7 @@ public class FeedFragment extends Fragment {
     private IssueRepository.StatusFilter statusFilter = IssueRepository.StatusFilter.ALL;
     private final List<com.app.mycity.data.model.Issue> allIssues = new ArrayList<>();
     private String titleQuery = "";
+    private String categoryFilter = null;
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -76,7 +82,37 @@ public class FeedFragment extends Fragment {
 
         applyChipSort();
         applyChipStatus();
+        b.chipCategory.setOnClickListener(this::showCategoryMenu);
+        applyChipCategory();
         subscribe();
+    }
+
+    private void showCategoryMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(requireContext(), anchor);
+        Menu menu = popup.getMenu();
+        menu.add(Menu.NONE, 0, 0, getString(R.string.filter_category_all));
+        for (int i = 0; i < IssueCategory.ALL.length; i++) {
+            menu.add(Menu.NONE, i + 1, i + 1, IssueCategory.labelWithEmoji(IssueCategory.ALL[i]));
+        }
+        popup.setOnMenuItemClickListener(item -> {
+            int idx = item.getItemId();
+            categoryFilter = idx == 0 ? null : IssueCategory.ALL[idx - 1];
+            applyChipCategory();
+            applySearchFilter();
+            return true;
+        });
+        popup.show();
+    }
+
+    private void applyChipCategory() {
+        if (b == null) return;
+        if (categoryFilter == null) {
+            b.chipCategory.setText(R.string.filter_category_all);
+            b.chipCategory.setSelected(false);
+        } else {
+            b.chipCategory.setText(IssueCategory.labelWithEmoji(categoryFilter));
+            b.chipCategory.setSelected(true);
+        }
     }
 
     protected IssueRepository.StatusFilter initialStatus() { return IssueRepository.StatusFilter.ALL; }
@@ -128,15 +164,13 @@ public class FeedFragment extends Fragment {
     private void applySearchFilter() {
         if (b == null) return;
         List<com.app.mycity.data.model.Issue> filtered = new ArrayList<>();
-        if (titleQuery.isEmpty()) {
-            filtered.addAll(allIssues);
-        } else {
-            for (com.app.mycity.data.model.Issue issue : allIssues) {
+        for (com.app.mycity.data.model.Issue issue : allIssues) {
+            if (categoryFilter != null && !categoryFilter.equals(issue.getCategory())) continue;
+            if (!titleQuery.isEmpty()) {
                 String title = issue.getTitle();
-                if (title != null && title.toLowerCase(Locale.ROOT).contains(titleQuery)) {
-                    filtered.add(issue);
-                }
+                if (title == null || !title.toLowerCase(Locale.ROOT).contains(titleQuery)) continue;
             }
+            filtered.add(issue);
         }
         adapter.submit(filtered);
         b.tvEmpty.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);

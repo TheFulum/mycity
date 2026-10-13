@@ -8,7 +8,6 @@
     android:background="@color/bg_primary"
     tools:context="com.app.mycity.ui.main.MainActivity">
 
-    <!-- Toolbar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -56,15 +55,47 @@
             android:id="@+id/tv_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:gravity="center"
+            android:maxLines="1"
             android:text="@string/app_title"
             android:textColor="@color/text_primary"
             android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btn_bell_container"
+            app:layout_constraintEnd_toStartOf="@id/btn_messages_container"
             app:layout_constraintStart_toEndOf="@id/btn_theme"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/btn_messages_container"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_bell_container"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/btn_messages"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_chat"
+                android:tint="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tv_messages_badge"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/bg_badge_red"
+                android:gravity="center"
+                android:textColor="@color/on_accent"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
 
         <FrameLayout
             android:id="@+id/btn_bell_container"
@@ -103,12 +134,11 @@
         android:background="@color/divider"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-    <!-- Контейнер для фрагментов (главная Feed↔Map в ViewPager2; остальные fragment_host поверх) -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/nav_host"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintTop_toBottomOf="@id/toolbar_divider" />
 
     <FrameLayout
@@ -117,10 +147,35 @@
         android:layout_height="0dp"
         android:background="@color/bg_primary"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintTop_toBottomOf="@id/toolbar_divider" />
 
-    <!-- FAB-меню (mini-FABs) -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg_secondary"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_admin_transport"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="295dp"
+        android:src="@drawable/ic_section_transport"
+        android:visibility="invisible"
+        app:backgroundTint="@color/accent_red"
+        app:fabCustomSize="40dp"
+        app:maxImageSize="20dp"
+        app:tint="@color/on_accent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_admin_stats"
         android:layout_width="40dp"
@@ -133,7 +188,7 @@
         app:fabCustomSize="40dp"
         app:maxImageSize="20dp"
         app:tint="@color/on_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -148,7 +203,7 @@
         app:fabCustomSize="40dp"
         app:maxImageSize="20dp"
         app:tint="@color/on_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -163,7 +218,7 @@
         app:fabCustomSize="40dp"
         app:maxImageSize="20dp"
         app:tint="@color/on_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -178,7 +233,7 @@
         app:fabCustomSize="40dp"
         app:maxImageSize="20dp"
         app:tint="@color/on_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -193,7 +248,7 @@
         app:fabCustomSize="40dp"
         app:maxImageSize="20dp"
         app:tint="@color/text_primary"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -207,7 +262,7 @@
         app:fabCustomSize="48dp"
         app:maxImageSize="24dp"
         app:tint="@color/on_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_nav"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

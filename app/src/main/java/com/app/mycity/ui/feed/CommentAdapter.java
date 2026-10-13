@@ -164,7 +164,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.VH> {
             b.tvDate.setText(DateUtils.format(c.getCreatedAt()));
             b.rating.setRating(c.getRating());
             boolean isReply = c.getParentCommentId() != null && !c.getParentCommentId().isEmpty();
-            b.rating.setVisibility(isReply ? View.GONE : View.VISIBLE);
+            b.rating.setVisibility(isReply || c.getRating() <= 0 ? View.GONE : View.VISIBLE);
 
             int base = (int) (12 * itemView.getResources().getDisplayMetrics().density);
             int indent = (int) (12 * itemView.getResources().getDisplayMetrics().density) * Math.min(row.depth, 6);

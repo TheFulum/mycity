@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="news_filter_all">Все</string>
+    <string name="news_filter_important">Важное</string>
+    <string name="news_filter_dangerous">Опасное</string>
+    <string name="news_filter_interesting">Интересное</string>
+    <string name="news_empty">Пока нет новостей в этой категории</string>
+    <string name="news_no_geo">Геопривязанных новостей пока нет</string>
+    <string name="news_open_original">Открыть оригинал ↗</string>
+    <string name="news_source_and_date_format">%1$s · %2$s</string>
+    <string name="news_category_important">Важное</string>
+    <string name="news_category_dangerous">Опасное</string>
+    <string name="news_category_interesting">Интересное</string>
+    <string name="news_category_unknown">Новость</string>
+    <string name="news_load_error">Не удалось загрузить новости</string>
+    <string name="news_detail_back">Назад</string>
+    <string name="news_detail_location">Открыть на карте</string>
+</resources>

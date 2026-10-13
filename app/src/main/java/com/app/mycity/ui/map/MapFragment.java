@@ -23,14 +23,13 @@ import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.databinding.FragmentMapBinding;
 import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.GeoUtils;
+import com.app.mycity.util.IssueCategory;
 import com.bumptech.glide.Glide;
 
-import org.osmdroid.events.MapEventsReceiver;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
-import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -98,21 +97,6 @@ public class MapFragment extends Fragment {
 
     private void renderMarkers(List<Issue> issues) {
         b.map.getOverlays().clear();
-        MapEventsOverlay tapDismiss = new MapEventsOverlay(new MapEventsReceiver() {
-            @Override
-            public boolean singleTapConfirmedHelper(GeoPoint p) {
-                if (b != null && b.popup.getVisibility() == View.VISIBLE) {
-                    b.popup.setVisibility(View.GONE);
-                }
-                return false;
-            }
-
-            @Override
-            public boolean longPressHelper(GeoPoint p) {
-                return false;
-            }
-        });
-        b.map.getOverlays().add(0, tapDismiss);
         for (Issue issue : issues) {
             Marker marker = new Marker(b.map);
             marker.setPosition(new GeoPoint(issue.getLat(), issue.getLng()));
@@ -186,14 +170,18 @@ public class MapFragment extends Fragment {
     }
 
     private Drawable markerIcon(Issue issue) {
-        int res = (issue != null && issue.isResolved()) ? R.drawable.ic_marker_red : R.drawable.ic_marker;
-        Drawable d = ContextCompat.getDrawable(requireContext(), res);
-        if (d == null) {
-            d = ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker);
+        Drawable d = ContextCompat.getDrawable(requireContext(), R.drawable.ic_marker);
+        if (d == null) return null;
+        d = DrawableCompat.wrap(d.mutate());
+        int colorRes;
+        if (issue != null && issue.isResolved()) {
+            colorRes = R.color.status_resolved;
+        } else if (issue != null && issue.getCategory() != null) {
+            colorRes = IssueCategory.colorRes(issue.getCategory());
+        } else {
+            colorRes = R.color.category_other;
         }
-        if (d != null) {
-            d = DrawableCompat.wrap(d.mutate());
-        }
+        DrawableCompat.setTint(d, ContextCompat.getColor(requireContext(), colorRes));
         return d;
     }
 
@@ -202,6 +190,15 @@ public class MapFragment extends Fragment {
         b.popupTitle.setText(issue.getTitle());
         b.popupAddress.setText(GeoUtils.displayAddress(issue.getAddress()));
         b.popupDescription.setText(issue.getDescription());
+        String category = issue.getCategory();
+        if (category != null && !category.isEmpty()) {
+            b.popupCategory.setVisibility(View.VISIBLE);
+            b.popupCategory.setText(IssueCategory.labelWithEmoji(category));
+            int color = ContextCompat.getColor(requireContext(), IssueCategory.colorRes(category));
+            b.popupCategory.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));
+        } else {
+            b.popupCategory.setVisibility(View.GONE);
+        }
         if (issue.getPhotoUrls() != null && !issue.getPhotoUrls().isEmpty()) {
             b.popupImage.setVisibility(View.VISIBLE);
             Glide.with(b.popupImage)

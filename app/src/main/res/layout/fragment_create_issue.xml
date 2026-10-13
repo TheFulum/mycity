@@ -62,6 +62,35 @@
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Категория -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/create_category_title"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_category"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"
+            app:singleLine="false"
+            app:singleSelection="true" />
+
+        <TextView
+            android:id="@+id/tv_category_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/error_no_category"
+            android:textColor="@color/accent_red"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <!-- Фото -->
         <TextView
             android:layout_width="match_parent"
@@ -143,6 +172,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:text="Нажмите на карту, чтобы указать точку…"
                 android:textColor="@color/text_primary"
                 android:textSize="13sp" />
@@ -150,7 +181,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="@dimen/create_issue_map_height"
             android:layout_marginTop="8dp">
 
             <org.osmdroid.views.MapView

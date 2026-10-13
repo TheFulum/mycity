@@ -18,13 +18,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.app.mycity.R;
+import com.app.mycity.data.model.CityPost;
 import com.app.mycity.data.model.UserProfile;
+import com.app.mycity.data.repository.CityPostRepository;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.FragmentProfileBinding;
 import com.app.mycity.ui.auth.SplashActivity;
+import com.app.mycity.ui.citypost.CityPostCardAdapter;
 import com.app.mycity.ui.feed.IssueCardAdapter;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.ui.onboarding.OnboardingActivity;
 import com.app.mycity.util.FirebaseErrors;
 import com.app.mycity.util.SessionManager;
 import com.bumptech.glide.Glide;
@@ -47,12 +51,16 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
     private FragmentProfileBinding b;
     private final UserRepository userRepo = new UserRepository();
     private final IssueRepository issueRepo = new IssueRepository();
+    private final CityPostRepository postRepo = new CityPostRepository();
     private ListenerRegistration userListener;
     private ListenerRegistration myListener;
+    private ListenerRegistration myPostsListener;
     private IssueCardAdapter adapter;
+    private CityPostCardAdapter postAdapter;
 
     private UserProfile currentProfile;
     private boolean showResolved = false;
+    private int currentTabPosition = 0;
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -68,6 +76,7 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
         if (user == null || session.isGuest()) {
             b.header.setVisibility(View.GONE);
             b.myIssuesBlock.setVisibility(View.GONE);
+            b.rowReplayOnboarding.setVisibility(View.GONE);
             b.guestBlock.setVisibility(View.VISIBLE);
             b.btnSignIn.setOnClickListener(v -> {
                 session.clear();
@@ -80,7 +89,14 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
 
         b.header.setVisibility(View.VISIBLE);
         b.myIssuesBlock.setVisibility(View.VISIBLE);
+        b.rowReplayOnboarding.setVisibility(View.VISIBLE);
         b.guestBlock.setVisibility(View.GONE);
+
+        b.rowReplayOnboarding.setOnClickListener(v -> {
+            Intent i = new Intent(requireContext(), OnboardingActivity.class);
+            i.putExtra(OnboardingActivity.EXTRA_REPLAY_MODE, true);
+            startActivity(i);
+        });
 
         adapter = new IssueCardAdapter(issue -> {
             if (getActivity() instanceof MainActivity) {
@@ -92,17 +108,34 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
                 ((MainActivity) getActivity()).openUserProfile(uid);
             }
         });
+        postAdapter = new CityPostCardAdapter(post -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openCityPostDetail(post.getId());
+            }
+        });
+        postAdapter.setOnAuthorClick(uid -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).openUserProfile(uid);
+            }
+        });
         b.rvMy.setLayoutManager(new LinearLayoutManager(requireContext()));
         b.rvMy.setItemAnimator(null);
         b.rvMy.setAdapter(adapter);
 
         b.tabs.addTab(b.tabs.newTab().setText(R.string.profile_my_active));
         b.tabs.addTab(b.tabs.newTab().setText(R.string.profile_my_resolved));
+        b.tabs.addTab(b.tabs.newTab().setText(R.string.profile_my_posts));
         b.tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override public void onTabSelected(TabLayout.Tab tab) {
+                currentTabPosition = tab.getPosition();
                 b.rvMy.animate().alpha(0f).setDuration(110).withEndAction(() -> {
-                    showResolved = tab.getPosition() == 1;
-                    subscribeMyIssues();
+                    if (currentTabPosition == 2) {
+                        showResolved = false;
+                        subscribeMyPosts();
+                    } else {
+                        showResolved = (currentTabPosition == 1);
+                        subscribeMyIssues();
+                    }
                     b.rvMy.animate().alpha(1f).setDuration(180).start();
                 }).start();
             }
@@ -174,16 +207,29 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
     private void subscribeMyIssues() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
-        if (myListener != null) myListener.remove();
+        if (myPostsListener != null) { myPostsListener.remove(); myPostsListener = null; }
+        if (myListener != null) { myListener.remove(); myListener = null; }
+        b.rvMy.setAdapter(adapter);
         myListener = issueRepo.listenByAuthor(user.getUid(), showResolved, (list, err) -> {
             if (b == null || adapter == null) return;
             adapter.submit(list);
         });
     }
 
+    private void subscribeMyPosts() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+        if (myListener != null) { myListener.remove(); myListener = null; }
+        if (myPostsListener != null) { myPostsListener.remove(); myPostsListener = null; }
+        b.rvMy.setAdapter(postAdapter);
+        myPostsListener = postRepo.listenByAuthor(user.getUid(), (list, err) -> {
+            if (b == null || postAdapter == null) return;
+            postAdapter.submit(list);
+        });
+    }
+
     @Override
     public void onProfileUpdated() {
-        // Realtime listener подхватит изменения автоматически
     }
 
     private void showLinkEmailDialog() {
@@ -315,6 +361,7 @@ public class ProfileFragment extends Fragment implements EditProfileBottomSheet.
         super.onDestroyView();
         if (userListener != null) { userListener.remove(); userListener = null; }
         if (myListener != null) { myListener.remove(); myListener = null; }
+        if (myPostsListener != null) { myPostsListener.remove(); myPostsListener = null; }
         b = null;
     }
 }

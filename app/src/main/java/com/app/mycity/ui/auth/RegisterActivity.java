@@ -12,6 +12,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.app.mycity.databinding.ActivityRegisterBinding;
 import com.app.mycity.ui.main.MainActivity;
+import com.app.mycity.ui.onboarding.OnboardingActivity;
 import com.app.mycity.util.FirebaseErrors;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -96,9 +97,10 @@ public class RegisterActivity extends AppCompatActivity {
                 .setTitle("Регистрация завершена!")
                 .setMessage("Хотите войти с этим аккаунтом?")
                 .setPositiveButton("Войти", (d, w) -> {
-                    Intent intent = new Intent(this, MainActivity.class);
+                    Intent intent = new Intent(this, OnboardingActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
+                    finish();
                 })
                 .setNegativeButton("К выбору входа", (d, w) -> {
                     auth.signOut();

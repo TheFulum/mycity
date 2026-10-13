@@ -9,11 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.res.ColorStateList;
+import androidx.core.content.ContextCompat;
+
 import com.app.mycity.R;
 import com.app.mycity.data.model.Issue;
 import com.app.mycity.databinding.ItemIssueCardBinding;
 import com.app.mycity.util.DateUtils;
 import com.app.mycity.util.GeoUtils;
+import com.app.mycity.util.IssueCategory;
 import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
@@ -59,8 +63,8 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
                 Issue a = items.get(o), b = newList.get(n);
                 return equals(a.getTitle(), b.getTitle())
                         && equals(a.getStatus(), b.getStatus())
+                        && equals(a.getCategory(), b.getCategory())
                         && equals(a.getResolvedByName(), b.getResolvedByName())
-                        && equals(a.getClosureOrganization(), b.getClosureOrganization())
                         && a.getCommentCount() == b.getCommentCount();
             }
             private boolean equals(String a, String b) {
@@ -123,15 +127,20 @@ public class IssueCardAdapter extends RecyclerView.Adapter<IssueCardAdapter.VH> 
                 b.tvStatus.setBackgroundResource(R.drawable.bg_status_active);
             }
 
-            if (issue.isResolved()) {
-                String org = issue.getClosureOrganizationDisplay();
-                if (!org.isEmpty()) {
-                    b.tvResolvedBy.setVisibility(View.VISIBLE);
-                    b.tvResolvedBy.setText(b.getRoot().getContext().getString(
-                            R.string.detail_organization_line, org));
-                } else {
-                    b.tvResolvedBy.setVisibility(View.GONE);
-                }
+            String category = issue.getCategory();
+            if (category != null && !category.isEmpty()) {
+                b.tvCategory.setVisibility(View.VISIBLE);
+                b.tvCategory.setText(IssueCategory.labelWithEmoji(category));
+                int color = ContextCompat.getColor(b.getRoot().getContext(),
+                        IssueCategory.colorRes(category));
+                b.tvCategory.setBackgroundTintList(ColorStateList.valueOf(color));
+            } else {
+                b.tvCategory.setVisibility(View.GONE);
+            }
+
+            if (issue.isResolved() && issue.getResolvedByName() != null && !issue.getResolvedByName().trim().isEmpty()) {
+                b.tvResolvedBy.setVisibility(View.VISIBLE);
+                b.tvResolvedBy.setText("Исполнитель: " + issue.getResolvedByName().trim());
             } else {
                 b.tvResolvedBy.setVisibility(View.GONE);
             }

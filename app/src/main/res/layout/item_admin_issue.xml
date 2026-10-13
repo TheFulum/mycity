@@ -74,9 +74,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="2dp"
+                android:singleLine="true"
                 android:text="Одобрено"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <Button
                 android:id="@+id/btn_reject"
@@ -84,9 +89,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="2dp"
+                android:singleLine="true"
                 android:text="Отклонить"
                 android:textColor="@color/accent_red"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 app:strokeColor="@color/accent_red"
                 app:strokeWidth="1dp" />
 
@@ -96,9 +106,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="2dp"
+                android:singleLine="true"
                 android:text="Аннулировать"
                 android:textColor="@color/accent_red"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 app:strokeColor="@color/accent_red"
                 app:strokeWidth="1dp" />
 
@@ -108,9 +123,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="2dp"
+                android:singleLine="true"
                 android:text="Удалить"
                 android:textColor="@color/accent_red"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 app:strokeColor="@color/accent_red"
                 app:strokeWidth="1dp" />
         </LinearLayout>

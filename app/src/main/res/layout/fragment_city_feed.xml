@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:orientation="vertical">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chip_all"
+                style="@style/FilterChip"
+                android:text="@string/city_filter_all" />
+
+            <TextView
+                android:id="@+id/chip_nature"
+                style="@style/FilterChip"
+                android:layout_marginStart="8dp"
+                android:text="@string/city_filter_nature" />
+
+            <TextView
+                android:id="@+id/chip_place"
+                style="@style/FilterChip"
+                android:layout_marginStart="8dp"
+                android:text="@string/city_filter_place" />
+
+            <TextView
+                android:id="@+id/chip_venue"
+                style="@style/FilterChip"
+                android:layout_marginStart="8dp"
+                android:text="@string/city_filter_venue" />
+
+            <TextView
+                android:id="@+id/chip_history"
+                style="@style/FilterChip"
+                android:layout_marginStart="8dp"
+                android:text="@string/city_filter_history" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sort"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="12dp"
+            android:text="@string/city_sort_date"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            app:cornerRadius="16dp"
+            app:rippleColor="@color/ripple_light" />
+
+        <ImageButton
+            android:id="@+id/btn_sort_reverse"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/city_sort_reverse_cd"
+            android:padding="8dp"
+            android:src="@android:drawable/arrow_down_float"
+            app:tint="@color/text_primary" />
+    </LinearLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_posts"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="100dp"
+                android:scrollbars="none" />
+
+            <TextView
+                android:id="@+id/tv_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:paddingHorizontal="32dp"
+                android:text="@string/city_empty"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

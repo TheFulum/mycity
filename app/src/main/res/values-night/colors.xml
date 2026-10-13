@@ -56,4 +56,12 @@
     <color name="gallery_bg">#000000</color>
     <color name="gallery_scrim">#80000000</color>
     <color name="gallery_text">#FFFFFF</color>
+
+    <!-- Категории заявок (немного светлее для тёмной темы) -->
+    <color name="category_infrastructure">#F5B041</color>
+    <color name="category_landscaping">#35C977</color>
+    <color name="category_transport">#5DADE2</color>
+    <color name="category_safety">#DC5B4D</color>
+    <color name="category_lost_found">#AF7AC5</color>
+    <color name="category_other">#95A3B9</color>
 </resources>

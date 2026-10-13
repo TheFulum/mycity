@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="create_city_screen_title">Новый пост</string>
+    <string name="create_city_title_hint">Заголовок</string>
+    <string name="create_city_description_hint">Расскажите подробнее...</string>
+    <string name="create_city_category_label">Категория</string>
+    <string name="create_city_category_nature">Природа</string>
+    <string name="create_city_category_place">Место</string>
+    <string name="create_city_category_venue">Заведение</string>
+    <string name="create_city_category_history">История</string>
+    <string name="create_city_photos_label">Фото (до 5)</string>
+    <string name="create_city_add_photo">Добавить фото</string>
+    <string name="create_city_location_label">Местоположение</string>
+    <string name="create_city_pick_location">Указать на карте</string>
+    <string name="create_city_no_location">Без геометки</string>
+    <string name="create_city_location_empty">Точка не выбрана</string>
+    <string name="create_city_submit">Опубликовать</string>
+    <string name="create_city_validation_title">Введите заголовок</string>
+    <string name="create_city_validation_description">Введите описание</string>
+    <string name="create_city_validation_category">Выберите категорию</string>
+    <string name="create_city_validation_location">Укажите точку на карте или выберите «Без геометки»</string>
+    <string name="create_city_validation_photos">Максимум 5 фото</string>
+    <string name="create_city_success">Пост опубликован</string>
+    <string name="create_city_error_upload">Ошибка загрузки фото: %1$s</string>
+    <string name="create_city_error_save">Ошибка сохранения: %1$s</string>
+
+    <string name="city_detail_likes">Лайки</string>
+    <string name="city_detail_comments_label">Комментарии</string>
+    <string name="city_detail_comment_hint">Написать комментарий...</string>
+    <string name="city_detail_send">Отправить</string>
+    <string name="city_detail_no_comments">Пока нет комментариев</string>
+    <string name="city_detail_open_map">На карте</string>
+    <string name="city_detail_back">Назад</string>
+    <string name="city_detail_category_nature">Природа</string>
+    <string name="city_detail_category_place">Место</string>
+    <string name="city_detail_category_venue">Заведение</string>
+    <string name="city_detail_category_history">История</string>
+</resources>

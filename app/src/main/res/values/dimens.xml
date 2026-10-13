@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="auth_screen_padding">20dp</dimen>
+    <dimen name="auth_card_padding">16dp</dimen>
+    <dimen name="auth_title_size">26sp</dimen>
+    <dimen name="auth_subtitle_size">12sp</dimen>
+
+    <dimen name="issue_card_image_height">160dp</dimen>
+    <dimen name="issue_detail_map_height">180dp</dimen>
+    <dimen name="issue_detail_photo_height">220dp</dimen>
+    <dimen name="create_issue_map_height">200dp</dimen>
+</resources>

@@ -22,6 +22,7 @@ public class DraftStore {
     private static final String KEY_PHOTOS = "photos";
     private static final String KEY_GUEST_NAME = "guest_name";
     private static final String KEY_GUEST_CONTACT = "guest_contact";
+    private static final String KEY_CATEGORY = "category";
 
     private final SharedPreferences prefs;
 
@@ -37,7 +38,8 @@ public class DraftStore {
     public void save(String title, String description,
                      Double lat, Double lng, String address,
                      List<Uri> photos,
-                     String guestName, String guestContact) {
+                     String guestName, String guestContact,
+                     String category) {
         SharedPreferences.Editor e = prefs.edit();
         e.putString(KEY_TITLE, title != null ? title : "");
         e.putString(KEY_DESCRIPTION, description != null ? description : "");
@@ -57,6 +59,11 @@ public class DraftStore {
 
         e.putString(KEY_GUEST_NAME, guestName != null ? guestName : "");
         e.putString(KEY_GUEST_CONTACT, guestContact != null ? guestContact : "");
+        if (category != null && !category.isEmpty()) {
+            e.putString(KEY_CATEGORY, category);
+        } else {
+            e.remove(KEY_CATEGORY);
+        }
         e.apply();
     }
 
@@ -65,6 +72,7 @@ public class DraftStore {
     public String getAddress() { return prefs.getString(KEY_ADDRESS, ""); }
     public String getGuestName() { return prefs.getString(KEY_GUEST_NAME, ""); }
     public String getGuestContact() { return prefs.getString(KEY_GUEST_CONTACT, ""); }
+    public String getCategory() { return prefs.getString(KEY_CATEGORY, null); }
 
     public Double getLat() {
         if (!prefs.contains(KEY_LAT)) return null;

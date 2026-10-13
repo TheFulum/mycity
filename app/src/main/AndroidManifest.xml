@@ -46,6 +46,9 @@
         <activity android:name="com.app.mycity.ui.auth.ForgotPasswordActivity" />
         <activity android:name="com.app.mycity.ui.main.MainActivity" />
         <activity
+            android:name="com.app.mycity.ui.onboarding.OnboardingActivity"
+            android:theme="@style/Theme.MyCity" />
+        <activity
             android:name="com.app.mycity.ui.feed.PhotoGalleryActivity"
             android:theme="@style/Theme.MyCity"
             android:screenOrientation="portrait" />

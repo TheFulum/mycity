@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="@string/admin_close_organization_hint"
+        android:hint="Исполнитель (кто выполнил заявку)"
         app:boxBackgroundColor="@color/input_bg"
         app:boxStrokeColor="@color/input_stroke"
         app:hintTextColor="@color/text_secondary">

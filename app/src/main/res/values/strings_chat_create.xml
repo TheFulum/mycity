@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_create_title">Новый чат</string>
+    <string name="chat_create_group_label">Групповой чат</string>
+    <string name="chat_create_group_name_hint">Название группы</string>
+    <string name="chat_create_selected_format">Выбрано: %1$d</string>
+    <string name="chat_create_button">Создать</string>
+    <string name="chat_create_error_format">Не удалось создать чат: %1$s</string>
+    <string name="chat_create_group_validation">Введите название и выберите минимум 2 участника</string>
+    <string name="chat_write_button">Написать</string>
+</resources>

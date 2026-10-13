@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_next">Далее</string>
+    <string name="onboarding_done">Готово</string>
+    <string name="onboarding_settings_entry">Знакомство с приложением</string>
+
+    <string name="onboarding_step1_title">Добро пожаловать в MyCity</string>
+    <string name="onboarding_step1_body">Городское приложение для активных жителей. Помогаем сделать город лучше вместе.</string>
+
+    <string name="onboarding_step2_title">Сообщайте о проблемах</string>
+    <string name="onboarding_step2_body">Заметили яму на дороге, мусор или поломку? Создайте обращение с фото и геопозицией — администрация увидит и отреагирует.</string>
+
+    <string name="onboarding_step3_title">Делитесь городом</string>
+    <string name="onboarding_step3_body">Красивые места, локальные истории, любимые заведения — публикуйте посты о городе и читайте других жителей.</string>
+
+    <string name="onboarding_step4_title">Будьте в курсе</string>
+    <string name="onboarding_step4_body">Городские новости с указанием источника и расписание общественного транспорта — всё в одном месте.</string>
+
+    <string name="onboarding_step5_title">Готовы начинать?</string>
+    <string name="onboarding_step5_body">Свайпом вправо в любом разделе открывается карта с метками. Удачи в городе!</string>
+</resources>

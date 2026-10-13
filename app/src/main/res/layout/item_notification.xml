@@ -19,6 +19,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="3"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
 
@@ -37,6 +39,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:textColor="@color/accent_blue"
         android:textSize="13sp" />
 

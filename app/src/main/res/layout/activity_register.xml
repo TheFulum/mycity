@@ -20,8 +20,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="28dp"
-            android:paddingEnd="28dp"
+            android:paddingStart="@dimen/auth_screen_padding"
+            android:paddingEnd="@dimen/auth_screen_padding"
             android:paddingTop="16dp"
             android:paddingBottom="40dp">
 
@@ -41,9 +41,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="36dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="Регистрация"
                 android:textColor="@color/text_primary"
-                android:textSize="30sp"
+                android:textSize="@dimen/auth_title_size"
                 android:textStyle="bold"
                 android:letterSpacing="0.01"
                 app:layout_constraintTop_toBottomOf="@id/btnBack"
@@ -87,7 +89,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/auth_card_padding">
 
                     <!-- Табы Email / Телефон -->
                     <LinearLayout
@@ -250,6 +252,8 @@
                 android:layout_width="0dp"
                 android:layout_height="54dp"
                 android:layout_marginTop="12dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:text="ЗАРЕГИСТРИРОВАТЬСЯ"
                 android:textSize="14sp"
                 android:letterSpacing="0.06"

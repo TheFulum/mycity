@@ -13,7 +13,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="240dp">
+            android:layout_height="@dimen/issue_detail_photo_height">
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/photo_pager"
@@ -74,10 +74,25 @@
             </LinearLayout>
 
             <TextView
+                android:id="@+id/tv_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_category_badge"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/on_accent"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tv_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="8dp"
+                android:ellipsize="end"
+                android:maxLines="3"
                 android:textColor="@color/text_primary"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -87,6 +102,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/accent_blue"
                 android:textSize="13sp"
                 android:background="?attr/selectableItemBackgroundBorderless"
@@ -111,6 +128,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -128,7 +147,7 @@
         <FrameLayout
             android:id="@+id/map_container"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="@dimen/issue_detail_map_height"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_card"
@@ -185,13 +204,22 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_executor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tv_resolved_by"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/accent_blue"
-                android:textSize="13sp"
-                android:textStyle="bold"
+                android:textSize="12sp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true" />
@@ -214,87 +242,6 @@
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/report_pager"
-                android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:layout_marginTop="10dp"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/author_closure_confirm_card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/author_closure_card_title"
-                android:textColor="@color/accent_blue"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/author_closure_card_body"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/btn_author_confirm_closure"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:backgroundTint="@color/accent_green"
-                android:text="@string/author_closure_open_sheet"
-                android:textColor="@color/on_accent" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/author_closure_feedback_block"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="14dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/author_closure_feedback_title"
-                android:textColor="@color/accent_green"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_author_closure_confirmed_at"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="@color/text_hint"
-                android:textSize="11sp" />
-
-            <TextView
-                android:id="@+id/tv_author_closure_comment"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:visibility="gone" />
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/author_closure_pager"
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
                 android:layout_marginTop="10dp"

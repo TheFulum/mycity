@@ -58,4 +58,12 @@
     <color name="gallery_bg">#000000</color>
     <color name="gallery_scrim">#80000000</color>
     <color name="gallery_text">#FFFFFF</color>
+
+    <!-- Категории заявок -->
+    <color name="category_infrastructure">#F39C12</color>
+    <color name="category_landscaping">#27AE60</color>
+    <color name="category_transport">#3498DB</color>
+    <color name="category_safety">#C0392B</color>
+    <color name="category_lost_found">#8E44AD</color>
+    <color name="category_other">#7F8C8D</color>
 </resources>

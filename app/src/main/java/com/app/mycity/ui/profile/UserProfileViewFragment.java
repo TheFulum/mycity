@@ -4,12 +4,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.app.mycity.data.model.UserProfile;
+import com.app.mycity.data.repository.ChatRepository;
 import com.app.mycity.data.repository.IssueRepository;
 import com.app.mycity.data.repository.UserRepository;
 import com.app.mycity.databinding.FragmentUserProfileViewBinding;
@@ -18,6 +21,8 @@ import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.DateUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import com.app.mycity.R;
@@ -43,6 +48,7 @@ public class UserProfileViewFragment extends Fragment {
     private IssueCardAdapter adapter;
     private boolean showResolved = false;
     private String uid;
+    private UserProfile profile;
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -80,8 +86,15 @@ public class UserProfileViewFragment extends Fragment {
             @Override public void onTabReselected(TabLayout.Tab tab) { }
         });
 
+        FirebaseUser me = FirebaseAuth.getInstance().getCurrentUser();
+        boolean isSelf = me != null && uid != null && uid.equals(me.getUid());
+        b.btnWriteMessage.setVisibility(isSelf ? View.GONE : View.VISIBLE);
+        b.btnWriteMessage.setOnClickListener(v -> openDirectChat());
+
         userListener = userRepo.listen(uid, (profile, err) -> {
             if (b == null) return;
+            if (profile == null) return;
+            this.profile = profile;
             String name = profile.getDisplayName();
             b.tvName.setText(name != null && !name.isEmpty() ? name : "Пользователь");
 
@@ -122,6 +135,36 @@ public class UserProfileViewFragment extends Fragment {
         });
 
         subscribeIssues();
+    }
+
+    private void openDirectChat() {
+        FirebaseUser current = FirebaseAuth.getInstance().getCurrentUser();
+        if (current == null || profile == null || profile.getUid() == null) return;
+        if (profile.getUid().equals(current.getUid())) return;
+        String currentName = current.getDisplayName() != null && !current.getDisplayName().isEmpty()
+                ? current.getDisplayName()
+                : "Пользователь";
+        String otherName = profile.getDisplayName() != null && !profile.getDisplayName().isEmpty()
+                ? profile.getDisplayName()
+                : "Пользователь";
+        new ChatRepository().createDirectChat(current.getUid(), currentName,
+                        profile.getUid(), otherName)
+                .addOnSuccessListener(ref -> {
+                    if (ref == null) return;
+                    if (getActivity() instanceof MainActivity) {
+                        MainActivity m = (MainActivity) getActivity();
+                        m.popHost();
+                        m.openChatDetail(ref.getId());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(),
+                                getString(R.string.chat_create_error_format,
+                                        e.getMessage() != null ? e.getMessage() : ""),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void subscribeIssues() {

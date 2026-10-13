@@ -1,0 +1,17 @@
+{
+  "name": "mycity-firestore-seed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "One-shot Firestore loaders for MyCity. Reads transit_scraper JSON and writes routes/stops directly via firebase-admin SDK.",
+  "scripts": {
+    "seed:transport": "node seed-transport.js",
+    "seed:transport:dry": "node seed-transport.js --dry-run",
+    "seed:coords": "node seed-stop-coords.js",
+    "seed:coords:dry": "node seed-stop-coords.js --dry-run",
+    "fix:names": "node fix-route-names.js",
+    "fix:names:dry": "node fix-route-names.js --dry-run"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0"
+  }
+}

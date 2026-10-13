@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="section_problems">Проблемы</string>
+    <string name="section_city">О городе</string>
+    <string name="section_news">Новости</string>
+    <string name="section_transport">Транспорт</string>
+    <string name="section_coming_soon_title">Скоро здесь будет</string>
+    <string name="section_coming_soon_city">Делитесь местами, видами и историями вашего города. Раздел появится в ближайшем обновлении.</string>
+    <string name="section_coming_soon_news">Городские новости с указанием источника. Подключаем агрегатор RSS.</string>
+    <string name="section_coming_soon_transport">Маршруты, остановки и расписание общественного транспорта.</string>
+</resources>

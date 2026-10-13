@@ -27,7 +27,9 @@ import com.app.mycity.databinding.FragmentEditIssueBinding;
 import com.app.mycity.databinding.ItemCreatePhotoBinding;
 import com.app.mycity.ui.main.MainActivity;
 import com.app.mycity.util.CloudinaryManager;
+import com.app.mycity.util.IssueCategory;
 import com.bumptech.glide.Glide;
+import com.google.android.material.chip.Chip;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,6 +55,7 @@ public class EditIssueFragment extends Fragment {
     private final List<String> keptUrls = new ArrayList<>();
     private final List<Uri> newUris = new ArrayList<>();
     private Uri cameraUri;
+    private String selectedCategory;
 
     private ActivityResultLauncher<String[]> galleryLauncher;
     private ActivityResultLauncher<Uri> cameraLauncher;
@@ -75,6 +78,8 @@ public class EditIssueFragment extends Fragment {
         b.btnGallery.setOnClickListener(v -> galleryLauncher.launch(new String[]{"image/*"}));
         b.btnSubmit.setOnClickListener(v -> submit());
 
+        buildCategoryChips();
+
         issueRepo.get(issueId).addOnSuccessListener(snap -> {
             if (b == null || snap == null || !snap.exists()) return;
             currentIssue = snap.toObject(Issue.class);
@@ -83,12 +88,38 @@ public class EditIssueFragment extends Fragment {
 
             b.etTitle.setText(currentIssue.getTitle());
             b.etDescription.setText(currentIssue.getDescription());
+            selectedCategory = currentIssue.getCategory();
+            applySelectedCategoryChip();
 
             if (currentIssue.getPhotoUrls() != null) {
                 keptUrls.addAll(currentIssue.getPhotoUrls());
             }
             rebuildPhotoRow();
         }).addOnFailureListener(e -> toast("Не удалось загрузить заявку"));
+    }
+
+    private void buildCategoryChips() {
+        if (b == null) return;
+        b.chipGroupCategory.removeAllViews();
+        for (String key : IssueCategory.ALL) {
+            Chip chip = new Chip(requireContext());
+            chip.setText(IssueCategory.labelWithEmoji(key));
+            chip.setCheckable(true);
+            chip.setTag(key);
+            chip.setOnClickListener(v -> selectedCategory = (String) v.getTag());
+            b.chipGroupCategory.addView(chip);
+        }
+    }
+
+    private void applySelectedCategoryChip() {
+        if (b == null) return;
+        for (int i = 0; i < b.chipGroupCategory.getChildCount(); i++) {
+            View child = b.chipGroupCategory.getChildAt(i);
+            if (child instanceof Chip) {
+                Chip chip = (Chip) child;
+                chip.setChecked(selectedCategory != null && selectedCategory.equals(chip.getTag()));
+            }
+        }
     }
 
     private void registerLaunchers() {
@@ -183,10 +214,12 @@ public class EditIssueFragment extends Fragment {
         if (desc.isEmpty()) { b.tilDescription.setError("Обязательное поле"); return; }
         b.tilDescription.setError(null);
         if (keptUrls.isEmpty() && newUris.isEmpty()) { toast("Добавьте хотя бы одно фото"); return; }
+        if (selectedCategory == null) { toast(getString(R.string.error_no_category)); return; }
 
         setLoading(true);
         currentIssue.setTitle(title);
         currentIssue.setDescription(desc);
+        currentIssue.setCategory(selectedCategory);
         currentIssue.setApproved(false);
 
         uploadNewPhotos(0, new ArrayList<>(keptUrls));
